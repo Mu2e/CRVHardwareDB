@@ -1,0 +1,48 @@
+These are instruction for running the guiElectronics script.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2019May24
+This is a GUI-base script to enter the FEB (Electronics)
+information.
+The input is a comma-separated file (.cvs).
+
+A sample file is found in the 
+ElectronicsDataFiles subdirectory.
+
+Click the "Get Input File" button to bring up the 
+open file dialogn box.  Spool to the subdirectory
+containing the ".cvs" file and click "open".  Note each 
+"button" below uses different files.
+
+---- Enter the FEB --------------------
+
+1) Click the "Get Input File" button to select a file like:
+"FEB_Database_Sample_cmjModified2019May24.csv"
+Click the desired input file and hit the "open" button
+
+2) Click the green "Initial" button to load the FEB and
+the FEB chips into the database.  This must be done first
+as the measurement quantities require this information.
+Exit (i.e. press the red "Quit") button.
+
+---- Enter the FEB Test information --------------------
+
+1) Click the "Get Input File" button to select a file like:
+"FEB_Database_Sample_cmjModified2019May24.csv"
+Click the desired input file and hit the "open" button
+
+2) Click the green "Tests" button to load the FEB and
+the FEB chips into the database.  This must be done first
+as the measurement quantities require this information.
+Exit (i.e. press the red "Quit") button.
+
+------ Turn on options for testing ---------------------
+
+The "Turn on Test" button allows this script to run without
+sending information to the database.
+
+The "Turn on Debug" button turns on the debug statements that
+are writen to stdin (i.e. the terminal window) that this
+script was started.
+
+The "Quit" button is self-explained!

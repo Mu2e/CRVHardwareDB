@@ -1,0 +1,21 @@
+##
+##  File = "makeCrvUtilitiesZip"
+##
+#set inFile "cmjGuiLibGrid2017Jun23.py databaseConfig.py myTime.py"
+#zip -r crvUtilities2017.zip cmjGuiLibGrid2017Jun23.py databaseConfig.py myTime.py
+##zip -r crvUtilities.zip cmjGuiLibGrid2017Jun23.py databaseConfig.py myTime.py  generalUtilities.py
+##zip -r crvUtilities2020.zip cmjGuiLibGrid2018Oct1.py databaseConfig.py myTime.py  generalUtilities.py
+##zip -r crvUtilities2020.zip cmjGuiLibGrid2019Jan30.py databaseConfig.py myTime.py  generalUtilities.py
+## Remove older versions to unclutter this directory... older versions found in archive
+CRV_UTILITIES_NAME=crvUtilities.zip
+## zip -r $CRV_UTILITIES_NAME cmjGuiLibGrid2019Jan30.py databaseConfig.py myTime.py  generalUtilities.py
+##
+##  2020Aug03... change cmjGuiLibGrid2019Jan30 to cmjGuiLibGrid for easier mantinance
+CRV_UTILITIES_NAME=crvUtilities.zip
+zip -r $CRV_UTILITIES_NAME cmjGuiLibGrid.py databaseConfig.py myTime.py  generalUtilities.py
+##
+##  Check the zipfile
+date
+echo 'Make Zipfile: '$CRV_UTILITIES_NAME
+unzip -l $CRV_UTILITIES_NAME
+##

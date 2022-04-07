@@ -1,0 +1,41 @@
+Instructions for running
+  sipmPurchaseOrder
+Written by 
+  C M Jenkins
+  Department of Physics
+  Univeristy of South Alabama
+For: Mu2e Experiment
+2015July
+
+1) Enter the Purchase order number 
+    press the 'Enter' button... 
+    it turns "yellow"
+2) Enter the worker barcode....
+    press the 'Enter' button... 
+    it turns "yellow"
+      all worker barcodes start with the 
+      prefix "wk-"
+3) Enter the Institution
+    press the 'Enter' button... 
+    it turns "yellow"
+4) Enter the number of SiPM's ordered
+    press the 'Enter' button... 
+    it turns "yellow"
+5) Enter the date that the SiPM order 
+      was place in the format:
+      "dd/mm/yyyy"
+    press the 'Enter' button... 
+    it turns "yellow"
+6) Press 'Enter to DataBase' to enter values
+    into the database...  Afterwards all quantities
+    that have to be re-entered will have their
+    buttons cleared from the color "yellow"
+    to the default color.
+
+The last five purchase orders entered into
+the database may be viewed by pressing the
+"Get Purchase Order' button
+
+**  Note all worker barcodes and institutions
+    must be entered in the database.. if yours
+    is not present, contact a database administrator

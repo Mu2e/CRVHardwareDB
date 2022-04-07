@@ -1,0 +1,30 @@
+These are instruction for running the guiExtrusions scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2017Jul7
+This is a GUI-base script to enter the Extrusion information
+into the hardware database.
+The input is a comma-separated file (.cvs) generated from a 
+spreadsheet such as the template:
+
+QC-Mu2e-DB-060716-cmjModified2017May15.xlsx
+
+The .cvs file is generated from the summary worksheet at 
+the end.
+That is found in the ExtrusionSpreadSheets subdirectory.
+
+Click the "Get Input File" button to bring up the 
+open file dialogn box.  Spool to the subdirectory
+containing the ".cvs" file and click "open"
+
+1) Enter the extrusion information into the database
+by clicking the "Add Extrusions" button.
+
+The "Turn on Test" button allows this script to run without
+sending information to the database.
+
+The "Turn on Debug" button turns on the debug statements that
+are writen to stdin (i.e. the terminal window) that this
+script was started.
+
+The "Quit" button is self-explained!

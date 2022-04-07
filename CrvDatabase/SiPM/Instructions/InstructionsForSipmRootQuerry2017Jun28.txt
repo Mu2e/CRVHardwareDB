@@ -1,0 +1,34 @@
+These are instruction for running the sipmQuerryRoot scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2017Jun28
+This version uses PyRoot as run on the mu2e environment.
+Start by setting up the mu2e environment, then root:
+$ setup mu2e
+$ setup root
+
+(The last setup can be tricky, on my machine running v2_04_00a,
+the setup is:
+$ setup root v6_06_08
+)
+
+
+To run this script: 
+$ python SipmQueryRoot.py
+Next select the range of Purchase orders to inspect by:
+1) Entering the PO numbers in the "Sipm PO" window.  Note
+    that multiple PO numbers may be selected by separating them
+    with a comma (,).  For example: "PO-12345,PO-12346".  Then
+    click the blue "Batches" button that selects the PO range.
+or
+2) By DOUBLE CLICKING each PO number displayed in the list box.
+    After all PO numbers have been selected, click the blue
+    batches button that selects the PO range.
+
+Trend plots may be displayed by clicking the green "Scatter Plots"
+  button.  A graphical ".png" output file is written to the logFiles
+  subdirectory.
+
+Histograms may be displayed by clicking the green "Histogram" button.
+  A graphical ".png" output file and a root tree file is written 
+  to the logFiles subdirectory.

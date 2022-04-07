@@ -1,0 +1,4 @@
+These are instruction for running the extrusionQuerry scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2017Jun13

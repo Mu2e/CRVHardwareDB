@@ -1,0 +1,54 @@
+These are instruction for running the guiModules script.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2020Jul02
+This is a GUI-base script to enter the Module information.
+The input is a comma-separated file (.cvs).
+
+These files are found in a moduleSpreadSheets subdirectory.
+
+Entering the module information into the database consist
+of two parts:
+  I) Enter the module layout
+  II) Enter the CmbId, SmbId and SipmId information
+
+Click the "Get Input File" button to bring up the 
+open file dialogn box.  Spool to the subdirectory
+containing the ".cvs" file and click "open".  Note each 
+"button" below uses different files.
+
+I) ---------------  Enter the Module Layout ---------
+
+1) Click the "Get Input File"  button to bring up the 
+open file dialogn box.  Spool to the subdirectory
+containing the ".cvs" file and click "open". An example 
+is in the subdirectory "moduleSpreadSheets2020May":
+"moduleSpreadSheets2020May/crvmod-113_Layout-Sheet1.csv"
+
+2) Click the "Enter Module Layout" button.  
+
+II) -------- Enter the Module SmbId/CmbId/SipmId ---------
+
+1) Click the "Get Input File"  button to bring up the 
+open file dialogn box.  Spool to the subdirectory
+containing the ".cvs" file and click "open". An example 
+is in the subdirectory "moduleSpreadSheets2020May":
+"crvmod-113_SMBs-cmjChanged2020June02.csv"
+
+2) Click the "Enter Module Smb/Cmb" button. 
+
+III) -------- Enter the Module Test Values ---------
+
+3)  There are no CRV Module test files, so this
+option has not been implemented (as of 2020Jul02).  
+
+----------------------- Control Features -----------
+
+The "Turn on Test" button allows this script to run without
+sending information to the database.
+
+The "Turn on Debug" button turns on the debug statements that
+are writen to stdin (i.e. the terminal window) that this
+script was started.
+
+The "Quit" button is self-explained!

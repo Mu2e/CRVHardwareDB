@@ -1,0 +1,24 @@
+Prelimnary Instructions for running 
+      MultiWindows 
+Written by 
+  C M Jenkins
+  Department of Physics
+  Univeristy of South Alabama
+For: Mu2e Experiment
+2015July
+
+Entries must be done in stages
+1) Enter Purchase orders
+2) Enter Recieved batches
+3) Enter the SiPM Id number
+4) Enter the Vendor SiPM values for
+    a) Bias Voltage
+    b) Dark Count
+    c) Gain
+    ** Note this is done for ~10% of SiPMs
+5) The locally measured values for
+    a) Bias Voltage
+    b) Dark Count
+    c) Gain
+
+
