@@ -15,10 +15,10 @@
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
 ##
 #!/bin/env python
-from Tkinter import *         # get widget class
-from ttk import *             # get tkk widget class (for progess bar)
-import Tkinter as tk
-import tkFileDialog
+from tkinter import *         # get widget class
+from tkinter.ttk import *             # get tkk widget class (for progess bar)
+import tkinter as tk
+import tkinter.filedialog
 import os
 import sys        ## 
 import optparse   ## parser module... to parse the command line arguments
@@ -125,7 +125,7 @@ class multiWindow(Frame):
     #self.tempSelection = self.__checkBox.getCheckBoxSelection()
     self.__row += 3
     self.__col = 0
-    if(self.__cmjDebug > 0) : print("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection)
+    if(self.__cmjDebug > 0) : print(("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection))
     self.__buttonName = 'Module '
     self.StringEntrySetup(self.__frame0,self.__row,self.__col,self.__labelWidth,self.__entryWidth,self.__buttonWidth,buttonName=self.__buttonName)
 ##   Third Column...
@@ -202,7 +202,7 @@ class multiWindow(Frame):
 ## -------------------------------------------------------------------
   def setDebugLevel(self,tempDebugLevel):
     self.__cmjDebug = tempDebugLevel
-    print("...multiWindow::getFromProductionDatabase... Set Debug Level to = %s \n") % (self.__cmjDebug)
+    print(("...multiWindow::getFromProductionDatabase... Set Debug Level to = %s \n") % (self.__cmjDebug))
 ##
 ## ------------------------------------------------------------------
 ##  Returns a color string for a Sipm Signoff status
@@ -217,7 +217,7 @@ class multiWindow(Frame):
 ## -----------------------------------------------------------------
   def setStatusGrid2(self,tempSide):
     self.__localSide = tempSide
-    if(self.__cmjDebug > 1) : print("setStatusGrid2... self.__localSide %s \n") % (self.__localSide)
+    if(self.__cmjDebug > 1) : print(("setStatusGrid2... self.__localSide %s \n") % (self.__localSide))
     ## define the frame that holds the legend on the left hand side.
     self.__frame1 = tk.LabelFrame(self.__masterFrame) ## define frame to contain legend to the left
     self.__frame1.grid(row=1,column=0,sticky=tk.NSEW)
@@ -396,7 +396,7 @@ class multiWindow(Frame):
     self.__canvas1.create_window((0,0),window=self.__moduleGridFrame,anchor=tk.NW)  ## make window to hold the canvas
     self.__moduleGridFrame.update_idletasks() ## Make box information (below) available 
     self.__bbox = self.__canvas1.bbox(tk.ALL) ## Get the dimensions of the bounding box holding the canvas
-    if(self.__cmjDebug > 2) : print("bbox1 =%s bbox2 = %s bbox3 = %s  \n")%(self.__bbox[1],self.__bbox[2],self.__bbox[3])
+    if(self.__cmjDebug > 2) : print(("bbox1 =%s bbox2 = %s bbox3 = %s  \n")%(self.__bbox[1],self.__bbox[2],self.__bbox[3]))
     self.__width = self.__bbox[2]-self.__bbox[1]
     self.__height = self.__bbox[3]-self.__bbox[1]
     self.__COLS = 36  ## define the number of columns in the grid
@@ -440,7 +440,7 @@ class multiWindow(Frame):
     self.__StringEntry_result = self.__ent.get()
     self.__button.config(bg='yellow')
     self.getDiCountersInModule(self.__StringEntry_result)
-    print("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result)
+    print(("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result))
     return self.__StringEntry_result
 ## -----------------------------------------------------------------------------------
 ##    A class to add a row of  check boxes
@@ -457,12 +457,12 @@ class multiWindow(Frame):
     self.__tempVar = {}
     if (self.__cmjDebug > 8):
       for temp in sorted(self.__checkTestSet.keys()):
-        print ('--- myRowCheck::initializeCheckList... keys = %s selfcheckTestSet = %s') % (temp,self.__checkTestSet[temp])
+        print(('--- myRowCheck::initializeCheckList... keys = %s selfcheckTestSet = %s') % (temp,self.__checkTestSet[temp]))
   def makeChecks(self):
     self.__label = Label(self.__localFrame,text=self.__checkText,anchor=W,justify=LEFT)
     self.__label.grid(row=self.__row,column=self.__col,sticky=W,columnspan=len(self.__checkTestSet)-1)
     if (self.__cmjDebug > 8):
-      print '--- myRowCheck::initializeCheckList... self.__row = %d self.__col = %d' % (self.__row,self.__col)
+      print('--- myRowCheck::initializeCheckList... self.__row = %d self.__col = %d' % (self.__row,self.__col))
     self.__row =+ 2
     for self.__key in sorted(self.__checkTestSet.keys()):
       self.__var  = IntVar()
@@ -471,7 +471,7 @@ class multiWindow(Frame):
       self.__checkbutton.grid(row=self.__row,column=self.__col,sticky=W)
       self.__col += 1
       if (self.__cmjDebug > 8):
-        print '--- myRowCheck::initializeCheckList... self.__var.get() = %s ' % self.__var.get()
+        print('--- myRowCheck::initializeCheckList... self.__var.get() = %s ' % self.__var.get())
       self.__tempVar[self.__key] = self.__var
     self.__button1 = Button(self.__localFrame,text='Enter',command=(lambda :self.changeTestState(self.__key)))
     self.__button1.config(bg='#E3E3E3')
@@ -482,33 +482,33 @@ class multiWindow(Frame):
 ##             that is record which check button is selected or "checked"
   def changeTestState(self,tempKey):
     if (self.__cmjDebug > 6):
-      print '--- myRowCheck::changeTestState... self.__tempVar.. Before Change'
+      print('--- myRowCheck::changeTestState... self.__tempVar.. Before Change')
       for nn in sorted(self.__tempVar.keys()):
-        print ('--- myRowCheck::changeTestState... keys = %s  tempVar = %s') % (nn,self.__tempVar[nn].get())
+        print(('--- myRowCheck::changeTestState... keys = %s  tempVar = %s') % (nn,self.__tempVar[nn].get()))
         for nn in sorted(self.__checkTestSet.keys()):
-          print ('--- myRowCheck::changeTestState... self.__checkTestSet.. keys = %s Value = %s')%(nn,self.__checkTestSet[nn])
+          print(('--- myRowCheck::changeTestState... self.__checkTestSet.. keys = %s Value = %s')%(nn,self.__checkTestSet[nn]))
      ## Load checkbox values into a dictionary whose values are integers
     for mmm in sorted(self.__checkTestSet.keys()):
       self.__checkTestSet[mmm] = self.__tempVar[mmm].get()
     if (self.__cmjDebug > 7): 
-      print '**************** self.__tempVar[mmm].get() %s ' % self.__tempVar[mmm]
+      print('**************** self.__tempVar[mmm].get() %s ' % self.__tempVar[mmm])
     if (self.__cmjDebug > 7):
-      print '--- myRowCheck::changeTestState... self.__checkTestSet after change'
+      print('--- myRowCheck::changeTestState... self.__checkTestSet after change')
       for mm in sorted(self.__checkTestSet.keys()):
-        print '--- myRowCheck::changeTestState... self.__checkTestSet:  keys = %s Value = %s'%(mm,self.__checkTestSet[mm])
+        print('--- myRowCheck::changeTestState... self.__checkTestSet:  keys = %s Value = %s'%(mm,self.__checkTestSet[mm]))
     self.__button1.config(bg='yellow')
     for mmm in sorted(self.__checkTestSet.keys()):
-      if (self.__cmjDebug > 7):print("mmm = %s self.__checkTestSet[mmm]= %s ") %(mmm,self.__checkTestSet[mmm])
+      if (self.__cmjDebug > 7):print(("mmm = %s self.__checkTestSet[mmm]= %s ") %(mmm,self.__checkTestSet[mmm]))
       if (self.__checkTestSet[mmm] == 1) : self.__ModuleSideselection = mmm
       break
     self.modulePicture()
-    print("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection)
+    print(("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection))
     return
      ##  Allow the user to get the new selection.
   def getCheckBoxSelection(self):
     return self.__selection
   def reset(self):                   # a method to reset the checkboxes for next counter
-      if (self.__cmjDebug > 7): print '--- myRowCheck::reset... self.__vars  '  
+      if (self.__cmjDebug > 7): print('--- myRowCheck::reset... self.__vars  ')  
       for mm in sorted(self.__checkTestSet.keys()):
         self.__checkTestSet[mm] = 0
       for nn in sorted(self.__tempVar.keys()):
@@ -567,23 +567,23 @@ class multiWindow(Frame):
       except:
         print(".... getDiCountersInModule: ****************** Database Query Error ***********************\n")
         print (".... getDiCountersInModule: self.__localDataBaseLine1_list = self.__getDiCounterValues.query \n")
-        print (".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1)
-        print (".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1)
-        print (".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list)
-        if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
+        print((".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1))
+        print((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
+        print((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
+        if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
     if(self.__cmjDebug > 3): 
      print (".... getDiCountersInModule: ================================================ \n") 
-     print (".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1)
-     print (".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1)
-     print (".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1)
-     print (".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list)
+     print((".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1))
+     print((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
+     print((".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1))
+     print((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
     xx = self.__progressBarCount.get()  ## get the current count for the progress bar
     self.__progressBarCount.set(xx+10)  ## increment the count
     self.update() ## update the progress bar
     self.__numberOfLines = len(self.__localDataBaseLine1_list)
     self.__diCounter = 0
     for self.__mmm in sorted(self.__localDataBaseLine1_list):  ## loop through the diCounters in a module
-      if(self.__cmjDebug > 3) : print(".... getDiCountersInModule:xxxx self.__mmm = xxx%sxxx") % (self.__mmm)
+      if(self.__cmjDebug > 3) : print((".... getDiCountersInModule:xxxx self.__mmm = xxx%sxxx") % (self.__mmm))
       if(self.__mmm == '') : continue
       self.__tempElement = []
       self.__tempElement = self.__mmm.rsplit(',')
@@ -600,23 +600,23 @@ class multiWindow(Frame):
         except:
           print(".... getDiCountersInModule: ****************** Database Query Error ***********************\n")
           print(".... getDiCountersInModule: self.__localDataBaseLine2_list = self.__getCmbSmbValues.query\n")
-          print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2)
-          print (".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2)
-          print (".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2)
-          print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-          print (".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list)
-          print (".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter)
-      if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
+          print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2))
+          print((".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2))
+          print((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
+          print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+          print((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
+          print((".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter))
+      if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
       xx = self.__progressBarCount.get()  ## get the current value for the progress bar
       self.__progressBarCount.set(xx+10)  ## increment the counter for the progress bar
       self.update() ## update the progress bar
       if(self.__cmjDebug > 3):
         print (".... getDiCountersInModule: --------------------------------------------------- \n")
-        print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2)
-        print (".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2)
-        print (".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2)
-        print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-        print (".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list)
+        print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2))
+        print((".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2))
+        print((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
+        print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+        print((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
       for self.__nnn in sorted(self.__localDataBaseLine2_list):
         self.__tempElement2 = []
         if(self.__nnn == '') : continue
@@ -636,13 +636,13 @@ class multiWindow(Frame):
             except:
               print (".... getDiCountersInModule: ****************** Database Query Error *********************** \n")
               print (".... getDiCountersInModule:self.__localDataBaseLine3_list = self.__getCmbSmbValues.query -- Side A -- \n")
-              print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-              print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-              print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-              print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-              print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-              print (".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter)
-              if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
+              print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+              print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+              print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+              print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+              print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+              print((".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter))
+              if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
 	  xx = self.__progressBarCount.get()  ## get the current value of the progress bar counter  
 	  self.__progressBarCount.set(xx+10)  ## increment the progress bar counter
 	  self.update()  ## update the progress bar
@@ -656,12 +656,12 @@ class multiWindow(Frame):
            self.__moduleSipmSignOff_dict[self.__tempSipmId[20:len(self.__tempSipmId)]] = self.__tempSipmSignoff
            if(self.__cmjDebug > 3): 
              print (".... getDiCountersInModule: ............................................  \n")
-             print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-             print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-             print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-             print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-             print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-             print (".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3)
+             print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+             print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+             print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+             print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+             print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+             print((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
            self.__moduleSipmId_top_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
         elif(self.__tempDiCounterEnd == 'bottom'):
           self.__moduleCmb_bot_dict[self.__tempLayer][self.__tempPosition] = self.__tempCmbId
@@ -675,13 +675,13 @@ class multiWindow(Frame):
             except:
               print (".... getDiCountersInModule: ****************** Database Query Error *********************** \n")
               print (".... getDiCountersInModule: self.__localDataBaseLine3_list = self.__getCmbSmbValues.query -- Side B -- \n")
-              print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-              print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-              print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-              print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-              print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-              print (".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter)
-              if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
+              print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+              print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+              print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+              print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+              print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+              print((".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter))
+              if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
 	  xx = self.__progressBarCount.get()  ## get the current value of the progress bar counter
 	  self.__progressBarCount.set(xx+10)  ## increment the progres bar
 	  self.update()  ## update the progresss bar
@@ -695,15 +695,15 @@ class multiWindow(Frame):
             self.__moduleSipmSignOff_dict[self.__tempSipmId[20:len(self.__tempSipmId)]] = self.__tempSipmSignoff
             if(self.__cmjDebug > 3):
               print (".... getDiCountersInModule: ............................................  \n")
-              print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-              print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-              print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-              print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-              print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-              print (".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3)
+              print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+              print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+              print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+              print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+              print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+              print((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
             self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
-            if (self.__cmjDebug > 3) : print(".... getDiCountersInModule:  self.__moduleSipmId_bot_nest_dict[%s][%s][%s] = %s") % (self.__tempLayer,self.__tempPosition,self.__tempSipmPosition,self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition])
-    if(self.__cmjDebug > 2) : print(".... getDiCountersInModule:  self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection)
+            if (self.__cmjDebug > 3) : print((".... getDiCountersInModule:  self.__moduleSipmId_bot_nest_dict[%s][%s][%s] = %s") % (self.__tempLayer,self.__tempPosition,self.__tempSipmPosition,self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition]))
+    if(self.__cmjDebug > 2) : print((".... getDiCountersInModule:  self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection))
     self.setStatusGrid2(self.__ModuleSideselection)  ## Diplay the grid 
     return self.__localDiCounterValues_list
 ##
@@ -719,7 +719,7 @@ if __name__ == '__main__':
   parser.add_option('--database',dest='database',type='string',default="development",help='development or production')
   ##
   options, args = parser.parse_args()
-  print("'__main__': options.database  = %s \n") % (options.database)
+  print(("'__main__': options.database  = %s \n") % (options.database))
   root = Tk()              # or Toplevel()
   bannerText = 'Mu2e::'+ProgramName
   root.title(bannerText)  

@@ -12,25 +12,30 @@
 ##  Modified by cmj2019Feb28... Change the default database to production.
 ##  Modified by cmj2020Aug03... cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021Mar1.... change from "from DataLoader import * " to "from DataLoader3 import * "
+##  Modified by cmj20201May11... change Dataloader3.zip to Dataloader.zip
+##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##
 #!/bin/env python
-from Tkinter import *         # get widget class
-import Tkinter as tk
-import tkFileDialog
+from tkinter import *         # get widget class
+import tkinter as tk
+import tkinter.filedialog
 import os
 import sys        ## 
 import optparse   ## parser module... to parse the command line arguments
 import math
 from time import *
-sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2020Dec16
+sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2021May11
 sys.path.append("../CrvUtilities/crvUtilities.zip")      ## 2020Jul02 add highlight to scrolled list
-from DataLoader import *   ## module to read/write to database....
+from DataLoader import *   ## module to read/write to database.... 2021May11
 from databaseConfig import *  
 from cmjGuiLibGrid import *  ## cmj2020Aug03
 from Sipm import *
 ##
 ProgramName = "goodSipm.py"
-Version = "version2020.12.16"
+Version = "version2020.05.12"
 ##
 ##
 ##
@@ -114,7 +119,7 @@ class multiWindow(Frame):
 ##  Set the SipmId for each Sipm in a waffle pack
   def setSipmIdName(self):
     for self.__m in range(16):
-	self.__sipmIdName.append(str(self.__m))
+      self.__sipmIdName.append(str(self.__m))
 ## ------------------------------------------------------------------
 ##  Set the Sipm over-all status for each Sipm in a waffle pack
   def setSipmStatus(self):
@@ -278,7 +283,7 @@ class multiWindow(Frame):
   def StringEntryFetch(self):
     self.__StringEntry_result = self.__ent.get()
     self.getSipmsFromWafflePack(self.__StringEntry_result)
-    print("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result)
+    print(("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result))
     return self.__StringEntry_result
 ## ===================================================================   
 ##
@@ -310,22 +315,22 @@ class multiWindow(Frame):
     self.__fetchCondition = 'pack_number:eq:'+packNumber  ## works!!!
     self.__numberReturned = 0
     if(self.__cmjPlotDiag > 1):
-      print (".... getSipmsFromWafflePack: self.__queryUrl   = %s \n") % (self.__queryUrl)
-      print (".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table)
-      print (".... getSipmsFromWafflePack: self.__fetchThese           = %s \n") % (self.__fetchThese)
-      print (".... getSipmsFromWafflePack: self.__fetchCondition       = %s \n") % (self.__fetchCondition)
+      print((".... getSipmsFromWafflePack: self.__queryUrl   = %s \n") % (self.__queryUrl))
+      print((".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table))
+      print((".... getSipmsFromWafflePack: self.__fetchThese           = %s \n") % (self.__fetchThese))
+      print((".... getSipmsFromWafflePack: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
     self.__localSipmBatchValues = self.__getSipmBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
     if(self.__cmjPlotDiag > 2): 
-	print (".... getSipmsFromWafflePack: self.__getSipmBatchValues   = %s \n") % (self.__getSipmBatchValues)
-	print (".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table)
-	print (".... getSipmsFromWafflePack: self.__fetchThese           = %s \n") % (self.__fetchThese)
-	print (".... getSipmsFromWafflePack: self.__fetchCondition       = %s \n") % (self.__fetchCondition)
-	print (".... getSipmsFromWafflePack: self.__localSipmBatchValues = %s \n") % (self.__localSipmBatchValues)
+      print((".... getSipmsFromWafflePack: self.__getSipmBatchValues   = %s \n") % (self.__getSipmBatchValues))
+      print((".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table))
+      print((".... getSipmsFromWafflePack: self.__fetchThese           = %s \n") % (self.__fetchThese))
+      print((".... getSipmsFromWafflePack: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
+      print((".... getSipmsFromWafflePack: self.__localSipmBatchValues = %s \n") % (self.__localSipmBatchValues))
     self.__numberOfBatches = len(self.__localSipmBatchValues)
-    if(self.__cmjPlotDiag > 2) : print('len(self.__localSipmBatchValues) = %d') % (self.__numberOfBatches)
+    if(self.__cmjPlotDiag > 2) : print(('len(self.__localSipmBatchValues) = %d') % (self.__numberOfBatches))
     self.__sipmChannel = 0
     for self.__mmm in sorted(self.__localSipmBatchValues):
-      if(self.__cmjPlotDiag> 0): print("self.__mmm = xxx%sxxx") % (self.__mmm)
+      if(self.__cmjPlotDiag> 0): print(("self.__mmm = xxx%sxxx") % (self.__mmm))
       if(self.__mmm == '') : continue
       self.__tempElement = []
       self.__tempElement = self.__mmm.rsplit(',')
@@ -334,7 +339,7 @@ class multiWindow(Frame):
       if(self.__tempElement[1] == 'None') : self.__sipmStatus[self.__sipmChannel] = 'white'
       if(self.__tempElement[1] == "not tested"): self.__sipmStatus[self.__sipmChannel] = 'gray'
       self.__sipmChannel += 1
-      if(self.__cmjPlotDiag> 2):  print("self.__tempElement[0] = %s self.__tempElement[1] = %s") % (self.__tempElement[0],self.__tempElement[1] )
+      if(self.__cmjPlotDiag> 2):  print(("self.__tempElement[0] = %s self.__tempElement[1] = %s") % (self.__tempElement[0],self.__tempElement[1] ))
     self.setSipmIdName()
     self.setSipmStatus()
     self.setStatusGrid(self.__sipmGrid_row,self.__sipmGrid_col)
@@ -356,9 +361,9 @@ if __name__ == '__main__':
   parser.add_option('--database',dest='database',type='string',default="production",help='development or production')
   parser.add_option('--update',dest='update',type='string',default="add",help='update to update entries')
   options, args = parser.parse_args()
-  print("'__main__': options.debugMode = %s \n") % (options.debugMode)
-  print("'__main__': options.testMode  = %s \n") % (options.testMode)
-  print("'__main__': options.database  = %s \n") % (options.database)
+  print(("'__main__': options.debugMode = %s \n") % (options.debugMode))
+  print(("'__main__': options.testMode  = %s \n") % (options.testMode))
+  print(("'__main__': options.database  = %s \n") % (options.database))
   root = Tk()              # or Toplevel()
   bannerText = 'Mu2e::'+ProgramName
   root.title(bannerText)  

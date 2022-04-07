@@ -63,13 +63,16 @@
 ##  Modified by cmj2020Jul09... Change crvUtilities2018 -> crvUtilities; cmjGuiLibGrid2018Oct1->cmjGuiLibGrid2019Jan30
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##
 ##
 sendDataBase = 0  ## zero... don't send to database
 #
-from Tkinter import *         # get widget class
-import Tkinter as tk
-import tkFileDialog
+from tkinter import *         # get widget class
+import tkinter as tk
+import tkinter.filedialog
 import os
 import sys        ## 
 import optparse   ## parser module... to parse the command line arguments
@@ -88,7 +91,7 @@ from cmjGuiLibGrid import *       ## 2020Aug03
 from DiCounters import *
 
 ProgramName = "guiDiCounters.py"
-Version = "version2020.12.16"
+Version = "version2021.05.14"
 
 ##
 ## -------------------------------------------------------------
@@ -210,8 +213,8 @@ class multiWindow(Frame):
 ##
 ##	Open up file dialog....
   def openFileDialog(self):
-    self.__filePath=tkFileDialog.askopenfilename()
-    print("__multiWindow__::openDialogFile = %s \n") % (self.__filePath)
+    self.__filePath=tkinter.filedialog.askopenfilename()
+    print(("__multiWindow__::openDialogFile = %s \n") % (self.__filePath))
     #self.__myDiCounters.turnOffDebug()
     self.__myDiCounters.openFile(self.__filePath)
     self.__myDiCounters.openLogFile()
@@ -264,9 +267,9 @@ if __name__ == '__main__':
   parser.add_option('--database',dest='database',type='string',default="production",help='--database = ''development''... send to production database')
   parser.add_option('--update',dest='update',type='int',default=0,help='--update = 1... change from insert to update mode')
   options, args = parser.parse_args()
-  print("'__main__': options.debugMode = %s \n") % (options.debugMode)
-  print("'__main__': options.testMode  = %s \n") % (options.testMode)
-  print("'__main__': options.database  = %s \n") % (options.database)
+  print(("'__main__': options.debugMode = %s \n") % (options.debugMode))
+  print(("'__main__': options.testMode  = %s \n") % (options.testMode))
+  print(("'__main__': options.database  = %s \n") % (options.database))
   root = Tk()              # or Toplevel()
   bannerText = 'Mu2e::'+ProgramName
   root.title(bannerText)  

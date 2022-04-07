@@ -36,12 +36,15 @@
 ##  Modified by cmj2020Jul13.... Change to hdbClient_v2_2
 ##  Modified by cmj2020Aug03... cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2020Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021May14... replace tabs with spaces for block statements to convert to python 
 ##
 ##		To run this script:
 ##	           python TestSiPM_DataBase2015Jun18.py
 ##
 import sys
-from Tkinter import *         # get widget class
+from tkinter import *         # get widget class
 sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2020Dec16
 sys.path.append("../CrvUtilities/crvUtilities.zip")
 from cmjGuiLibGrid import * ## cmj2020Aug03
@@ -72,7 +75,7 @@ import time
 
 cmjDiag = 0        # turn off diagnostic print statements
 sendDataBase = 1   # set to zero for test purposes (i.e. do not write to data base)
-Version = "version2020.08.03"
+Version = "version2021.05.12"
 
 ##
 ##	This class sets up the GUI window 
@@ -84,8 +87,8 @@ class packWindow(Frame):
           Frame.__init__(self,parent)
 	  self.__database_config = databaseConfig()
           if sendDataBase == 0:
-            print "---------- IN TEST MODE.... DATA WILL NOT BE SENT TO DATABASE!!!!!!!!!!!!! "
-          if (cmjDiag >= allDiag or cmjDiag == 100): print 'XXXX packSipmWindow::__main__  Enter driving method '
+            print("---------- IN TEST MODE.... DATA WILL NOT BE SENT TO DATABASE!!!!!!!!!!!!! ")
+          if (cmjDiag >= allDiag or cmjDiag == 100): print('XXXX packSipmWindow::__main__  Enter driving method ')
 	  self.__labelWidth = 20
 	  self.__entryWidth = 20
 	  self.__buttonWidth = 5
@@ -229,8 +232,8 @@ class packWindow(Frame):
 	  ### self.__url = "https://dbweb5.fnal.gov:8080/mu2edev/hdb/loader"
 	  self.__url = self.__database_config.getWriteUrl()
 	  if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0):
-	      print "XXXX __packWindow__::Next Counter: self.__url = %s " % (self.__url)
-	  print "XXXX __packSipmWindow__::Next Counter: URL = %s" % (self.__url)
+	      print("XXXX __packWindow__::Next Counter: self.__url = %s " % (self.__url))
+	  print("XXXX __packSipmWindow__::Next Counter: URL = %s" % (self.__url))
 	  ## build string for the SiPM Tables... 
 	  ## There are several tables in the SiPM group...
           self.__group = "SiPM Tables"
@@ -239,19 +242,19 @@ class packWindow(Frame):
 	  self.__user = self.__mySaveIt.getOperator()+" (SLF6.6:GUI)"
 	  self.__sipmIdString = self.buildRowString_for_SiPM_Id_table()
 	  if sendDataBase != 0:
-	    print "send to database!"
+	    print("send to database!")
 	    myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__table)
 	    myDataLoader1.addRow( self.__sipmIdString)
 	    retVal,code,text = myDataLoader1.send()  ## send it to the data base!
-	    print "text = %s" % text
+	    print("text = %s" % text)
 	    if retVal:
 		self.__statusBar.setForgroundColor('black')
 		self.__statusBar.setFontAll('arial',10,'normal')
 		self.__statusBar.setText("Data Sent: "+text)
 		self.__statusBar.makeLabel()
 		if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0):
-		  print "XXXX __packSipmWindow__::Next Counter: SiPM ID Data Trasmission Success!!!"
-		  print text
+		  print("XXXX __packSipmWindow__::Next Counter: SiPM ID Data Trasmission Success!!!")
+		  print(text)
 	    elif self.__password == '':
 		self.__statusBar.setForgroundColor('red')
 		self.__statusBar.setFontAll('arial',10,'normal')
@@ -263,9 +266,9 @@ class packWindow(Frame):
 		self.__statusBar.setText('Error (SiPM): '+code+' '+text)
 		self.__statusBar.makeLabel()
 		if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0):
-		    print "XXXX __packSipmWindow__::Next Counter: Failed!!!"
-		    print code
-		    print text 
+		    print("XXXX __packSipmWindow__::Next Counter: Failed!!!")
+		    print(code)
+		    print(text) 
 
 	  ## Reset all fields...
 	  #  self.__PurchaseOrderStr.resetEntry()  ## don't want to re-enter each time
@@ -282,8 +285,8 @@ class packWindow(Frame):
 #	  self.__sendRow['worker_barcode'] = self.__mySaveIt.getStrEntry('Worker')
 	  self.__sendRow['institution'] = self.__mySaveIt.getStrEntry('Institution')
 	  self.__sendRow['sipm_id'] = self.__mySaveIt.getStrEntry('SiPM ID Number')
-          for key in self.__sendRow.keys():
-                if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0): print 'XXXX packWindow::buildRowString... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key])
+          for key in list(self.__sendRow.keys()):
+                if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0): print('XXXX packWindow::buildRowString... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key]))
 	  return(self.__sendRow)
     ##-----------------------------------------------------------------
     ## This method retrieves the entries from the GUI fields and builds
@@ -299,8 +302,8 @@ class packWindow(Frame):
 	  self.__sendRow['dark_count'] = self.__mySaveIt.getStrEntry('Vendor Dark Count')
 	  self.__sendRow['gain'] = self.__mySaveIt.getStrEntry('Vendor Gain')
 
-          for key in self.__sendRow.keys():
-                if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0): print 'XXXX packWindow::buildRowString... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key])
+          for key in list(self.__sendRow.keys()):
+                if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0): print('XXXX packWindow::buildRowString... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key]))
 	  return(self.__sendRow)
     ##-----------------------------------------------------------------
     ## This method retrieves the entries from the GUI fields and builds
@@ -314,8 +317,8 @@ class packWindow(Frame):
           for mlist in self.__fltName:
               self.__sendRow[mlist] = self.__mySaveIt.getFltEntry(mlist)
           self.__sendRow['create_time']= strftime('%Y-%m-%d %H:%M:%Z')
-          for key in self.__sendRow.keys():
-                if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0): print 'XXXX packWindow::buildRowString... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key])
+          for key in list(self.__sendRow.keys()):
+                if (cmjDiag >= allDiag or cmjDiag == 9 or cmjDiagNext != 0): print('XXXX packWindow::buildRowString... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key]))
 	  return(self.__sendRow)
 
 ## --------------------------------------------------------------------

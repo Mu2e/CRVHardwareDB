@@ -58,13 +58,13 @@
 ##  Modified by cmj2020Jul22... Add a module to set the "sleepTime" variable.
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##
+##  Modified by bt2021Feb15... implemented/corrected support for unstaggered module specifically typed "Downstream-short"
+##  Modified by cmj2021May12... Include better comments to flag where BTuffs changed the code to impliment unstaggered csv files.
+##
 ##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
-##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3
-##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
-
-##
-##
+##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3##  
 ##
 sendDataBase = 0  ## zero... don't send to database
 #
@@ -117,6 +117,7 @@ class crvModules(object):
     self.__moduleAluminum  = ''
     self.__moduleDeviationFromFlat = ''
     self.__moduleComments = ''
+    self.__moduleStagger = True # Contains whether module is staggered or not ... BTuffs 2021Feb15
     ##                              ## The layer and position are contained in the di-counter tables....
     self.__moduleDiCounterPosition = defaultdict(dict)  ## Nested dictionary to hold the position and layer of a 
                                           ## DiCounter in the module....
@@ -285,10 +286,10 @@ class crvModules(object):
         if (self.__newLine.find('crvModule-') != -1): self.storeModuleMeasure(self.__newLine)
       print('Read in crvModules test results information')
     print('end of crvModules::readFileSmbCmb')
-## -----------------------------------------------------------------
-## This method reads the older "layout csv files".   These files have been superceeded by the
-## newer SBB files... This method has been retained with a different name for backwards
-## compatibility.
+    ## -----------------------------------------------------------------
+    ## This method reads the older "layout csv files".   These files have been superceeded by the
+    ## newer SBB files... This method has been retained with a different name for backwards
+    ## compatibility.
   def readFileLayout(self,tempInputMode):            ## method to read the Layout file's contents
     ## Module Test information
     self.__moduleTestDate = {}                  ## Dictionary to hold the date of the tests (key modulesId)
@@ -296,6 +297,7 @@ class crvModules(object):
     self.__moduleTestLightYieldAverage = {}      ## Dictionary to hold the test light average (key modulesId)
     self.__moduleTestLightYieldStDev = {}      ## Dictionary to hold the test light StDev (key modulesId)
     self.__moduleTestComments = {}            ## Dictionary to hold comments on the module (key modulesId)
+
 ##
     if(self.__cmjDebug > 0): print('mode value %s \n' % tempInputMode)
     self.__fileLine = []
@@ -315,7 +317,13 @@ class crvModules(object):
         if (self.__newLine.find('Aluminum') != -1):            self.storeModuleAluminum(self.__newLine)
         if (self.__newLine.find('Total_flatness_dev_mm') != -1): self.storeModuleFlat(self.__newLine)
         if (self.__newLine.find('Comments') != -1):             self.storeModuleComments(self.__newLine)
-        if (self.__newLine.find('layer') != -1): self.storeDicounterPosition(self.__newLine)
+        if (self.__newLine.find('layer') != -1): 
+        # BTuffs 2021Feb15.... Added if statements to check if module is staggered... begin
+          if (self.__moduleStagger):
+            self.storeDicounterPosition(self.__newLine)
+          else:
+            self.storeDicounterPositionNonStaggered(self.__newLine)
+        # BTuffs 2021Feb15.... Added if statements to check if module is staggered... end
       print('Read in crvModules initial information')
     elif(tempInputMode == 'measure'):
       for self.__newLine in self.__fileLine:
@@ -642,8 +650,8 @@ class crvModules(object):
           self.__cmbSmbString = self.buildCmbSmbString(self.__localDiCounterId,self.__localSipmPosition,self.__localDiCounterSide)
           self.logCmbSmbString()
           if (self.__cmjDebug > 3): 
-              print(("XXXX __crvModules__::writeCounterMotherBoards:(line637)  self.__localDiCounterId = %s self.__localDiCounterId = %s self.__localSipmPosition = %s") % (self.__localDiCounterId, self.__localDiCounterId,self.__localSipmPosition))
-              self.dumpCmbSmbString()  ## debug.... dump diCounter string...
+            print(("XXXX __crvModules__::writeCounterMotherBoards:(line637)  self.__localDiCounterId = %s self.__localDiCounterId = %s self.__localSipmPosition = %s") % (self.__localDiCounterId, self.__localDiCounterId,self.__localSipmPosition))
+            self.dumpCmbSmbString()  ## debug.... dump diCounter string...
           if self.__sendToDatabase != 0:
             print("send to diCounter Cmb/Smb to database!")
             self.__myDataLoader1 = DataLoader(self.__password3,self.__url,self.__group,self.__diCounterTable)
@@ -676,7 +684,7 @@ class crvModules(object):
                 self.__logFile.write('XXXX__crvModules__::writeCounterMotherBoards... self.__code = '+self.__code+'\n')
                 self.__logFile.write('XXXX__crvModules__::writeCounterMotherBoards... self.__text = '+self.__text+'\n')
               if(self.__text.find(' already exists.') != -1) : break  ## If the member is already in the database, don't try maxTries times!
-     
+##   
 ## -----------------------------------------------------------------
 ## build the string to connect the dicounters to the Sipms....
   def buildCmbSmbString(self,tempDiCounterId ,tempSipmPosition, tempDiCounterSide):
@@ -767,6 +775,7 @@ class crvModules(object):
                 self.__logFile.write('XXXX__crvModules__::writeDiCounterSipms... self.__code = '+self.__code+'\n')
                 self.__logFile.write('XXXX__crvModules__::writeDiCounterSipms... self.__text = '+self.__text+'\n')
 ##
+##
 ## -----------------------------------------------------------------
 ## build the string to connect the dicounters to the Sipms....
   def buildDicounterSipmString(self,tempSipmId, tempCmbId ,tempCmbPosition):
@@ -791,6 +800,10 @@ class crvModules(object):
 
 ### 2020Jun4..... Save the Sipms Group, Sipms Table information
 # ----------------------------------------------------------------------------------------
+
+
+
+
 ##
 ## ***************************************************************************************
 ## ***************************************************************************************
@@ -877,8 +890,15 @@ class crvModules(object):
   ## ----------------------------------
   def storeModuleComments(self,tempNewLine):
     self.__item =[]
+    self.__words = [] # BTuffs 2021Feb15... to store comment sperated by spaces to test for stagger
     self.__item = tempNewLine.rsplit(',')
     self.__moduleComments = self.__item[1]
+    self.__words = self.__moduleComments.rsplit(' ')
+    #  BTuffs 2021Feb15... loop to check for 'non-staggered' in comments... begin
+    for s in self.__words: #  BTuffs 2021Feb15... loop to check for 'non-staggered' in comments
+      if(s == 'non-staggered'):
+            self.__moduleStagger = False
+    #  BTuffs 2021Feb15... loop to check for 'non-staggered' in comments... end
     if (self.__moduleComments == ''): self.__moduleComments = 'No comment!'
     if(self.__cmjDebug > 0) : print(("__ storeModuleComments__ self.__moduleComments = %s") % (self.__moduleComments))
 ## ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1180,7 +1200,7 @@ class crvModules(object):
           tempDiCounter = self.__moduleDiCounterId[tempLayer][tempPosition]
           tempCmbId = self.__moduleCmbIdSideB[tempDiCounter]
           print(("__crvModules::storeCmb__   self.__moduleCmbIdSideA[diCounter] = self.__moduleCmbIdSideB[diCounter[%s] = %s \n") % (tempDiCounter,self.__moduleCmbIdSideB[tempDiCounter]))
-    if(self.__cmjDebug > 0): print("__crvModules::storeCmb__ ... Exit \n")
+        print("__crvModules::storeCmb__ ... Exit \n")
 ##
 ## ----------------------------------------------------------------
 ##  Store the Sipm Id for Sipms on the end of dicounters... 
@@ -1297,28 +1317,28 @@ class crvModules(object):
     tempDiCounterPosition = 0
     if(self.__item[0] == 'layer1'):
       #for n in range(5,13):
-      for n in range(0,8):
+      for n in range(2,10): # BTuffs 2021Feb15... edited to be correct "non-stagger"
         self.__moduleDiCounterPosition[self.__item[0]][tempDiCounterPosition] = tempDiCounterPosition
         self.__moduleDiCounterId[self.__item[0]][tempDiCounterPosition] = 'di-'+self.__item[n].strip()
         tempDiCounterPosition += 1
     tempDiCounterPosition = 0
     if(self.__item[0] == 'layer2'):
       #for n in range(4,12):
-      for n in range(0,8):
+      for n in range(2,10): # BTuffs 2021Feb15... edited to be correct "non-stagger"
         self.__moduleDiCounterPosition[self.__item[0]][tempDiCounterPosition] = tempDiCounterPosition
         self.__moduleDiCounterId[self.__item[0]][tempDiCounterPosition] = 'di-'+self.__item[n].strip()
         tempDiCounterPosition += 1
     tempDiCounterPosition = 0
     if(self.__item[0] == 'layer3'):
       #for n in range(3,11):
-      for n in range(0,8):
+      for n in range(2,10): # BTuffs 2021Feb15... edited to be correct "non-stagger"
         self.__moduleDiCounterPosition[self.__item[0]][tempDiCounterPosition] = tempDiCounterPosition
         self.__moduleDiCounterId[self.__item[0]][tempDiCounterPosition] = 'di-'+self.__item[n].strip()
         tempDiCounterPosition += 1
     tempDiCounterPosition = 0
     if(self.__item[0] == 'layer4'):
       #for n in range(2,10):
-      for n in range(0,8):
+      for n in range(2,10): # BTuffs 2021Feb15... edited to be correct "non-stagger"
         self.__moduleDiCounterPosition[self.__item[0]][tempDiCounterPosition] = tempDiCounterPosition
         self.__moduleDiCounterId[self.__item[0]][tempDiCounterPosition] = 'di-'+self.__item[n].strip()
         tempDiCounterPosition += 1
@@ -1394,8 +1414,8 @@ class crvModules(object):
           self.__moduleSmbIdSideA[tempDiCounterId] = "CrvSmb-"+self.__moduleId+'_ABSORBER_'+str(self.__dummyCounter)  ## cmj2020Jul22
         else:
           self.__moduleSmbIdSideA[tempDiCounterId] = "CrvSmb-"+tempSmbId.upper()  ## cmj2020Jul2
-      self.__dummyCounter +=1
-      columnNumber += cellIncrement
+        self.__dummyCounter +=1
+        columnNumber += cellIncrement
     if(self.__item[0] == 'SMB-L2-A'):
       #columnNumber = 10 ## start at offset to first cell
       columnNumber = 1 ## start at offset to first cell
@@ -1427,7 +1447,7 @@ class crvModules(object):
         else:
           self.__moduleSmbIdSideA[tempDiCounterId] = "CrvSmb-"+tempSmbId.upper()  ## cmj2020Jul2
         self.__dummyCounter +=1
-        columnNumber += cellIncrement
+      columnNumber += cellIncrement
     if(self.__item[0] == 'SMB-L4-A'):
       #columnNumber = 2 ## start at offfset to first cell
       columnNumber = 1 ## start at offset to first cell
@@ -1719,7 +1739,7 @@ class crvModules(object):
           tempDiCounter = self.__moduleDiCounterId[tempLayer][tempPosition]
           tempCmbId = self.__moduleCmbIdSideB[tempDiCounter]
           print(("__crvModules::storeCmbNonStaggered__   self.__moduleCmbIdSideB[diCounter] = self.__moduleCmbIdSideB[diCounter[%s] = %s \n") % (tempDiCounter,self.__moduleCmbIdSideB[tempDiCounter]))
-    if(self.__cmjDebug > 0):print("__crvModules::storeCmbNonStaggered__ ... Exit \n")
+        print("__crvModules::storeCmbNonStaggered__ ... Exit \n")
 ##
 ## ----------------------------------------------------------------
 ##  Store the Sipm Id for Sipms on the end of dicounters... 
@@ -1831,7 +1851,7 @@ class crvModules(object):
         for tempSipmPosition in sorted(self.__diCounterSipmLocation_dict.keys()):  ## Find the SipmId for a diCounter: use [diCounterId][SipmPosition]
           if(tempSipmPosition.find('A') != -1 and mLayer.find('-A') != -1): print(("__crvModules::storeDicounterSipmIdNonStaggered__ self.__moduleDiCounterSipmId[diCounterId][SipmPos] = self.__moduleDiCounterSipmId[%s][%s] = %s\n") % (tempDiCounterId,tempSipmPosition,self.__moduleDiCounterSipmId[tempDiCounterId][tempSipmPosition]))
           if(tempSipmPosition.find('B') != -1 and mLayer.find('-B') != -1): print(("__crvModules::storeDicounterSipmIdNonStaggered__ self.__moduleDiCounterSipmId[diCounterId][SipmPos] = self.__moduleDiCounterSipmId[%s][%s] = %s\n") % (tempDiCounterId,tempSipmPosition,self.__moduleDiCounterSipmId[tempDiCounterId][tempSipmPosition]))
-    if(self.__cmjDebug > 0): print("__crvModules::storeDicounterSipmIdNonStaggered__ ... Exit \n")
+      print("__crvModules::storeDicounterSipmIdNonStaggered__ ... Exit \n")
 ## ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## ++++++++++++++++++++++++ End the CMB/SMB/SIPM Decode Files +++++++++++++++++++++++++++++++++++
 ## ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

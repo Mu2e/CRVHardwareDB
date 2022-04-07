@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import json
 import os
@@ -5,8 +6,10 @@ import random
 import ssl
 import sys
 import time
-import urllib
-import urllib2
+import urllib.error
+import urllib.parse
+import urllib.request
+from io import IOBase
 
 
 class DataLoader(object):
@@ -44,7 +47,7 @@ class DataLoader(object):
             raise Exception("row must be a dictionary")
         if mode not in ('insert', 'update'):
             raise Exception("mode must be insert or update")
-        data = {k: (v.name, (lambda f: f.seek(0) or f.read().encode('base64'))(v)) if isinstance(v, file) else v for (k, v) in row.items()}
+        data = {k: (v.name, (lambda f: f.seek(0) or base64.b64encode(f.read()).decode())(v)) if isinstance(v, IOBase) else v for (k, v) in list(row.items())}
         (self.data['rows']).append((mode, data))
 
     def send(self, echoUrl=False):
@@ -62,20 +65,20 @@ class DataLoader(object):
             salt = '%s' % (random.random(),)
             sig = self.__signature(jdata, salt)
             # The Request call is sending as a POST, not as a GET.
-            req = urllib2.Request(self.urlWithArgs, jdata,
+            req = urllib.request.Request(self.urlWithArgs, jdata.encode(),
                                   {'X-Salt':      salt,
                                    'X-Signature': sig,
                                    'X-Group':     self.group,
                                    'X-Table':     self.data['table']
                                    })
             if echoUrl:
-                print "URL: %s\n  %s" % (req.get_full_url(), req.header_items())
+                print("URL: %s\n  %s" % (req.get_full_url(), req.header_items()))
             ssl_cert_file = os.environ.get("SSL_CERT_FILE")
             try:
-                response = urllib2.urlopen(req) if ssl_cert_file else urllib2.urlopen(req, context=ssl._create_unverified_context())
-            except urllib2.HTTPError as val:
+                response = urllib.request.urlopen(req) if ssl_cert_file else urllib.request.urlopen(req, context=ssl.SSLContext())
+            except urllib.error.HTTPError as val:
                 if self.urlWithArgs.lower().startswith("https") and ssl_cert_file:
-                    print "\n*** Please verify CA certificate provided with SSL_CERT_FILE environment variable!\n"
+                    print("\n*** Please verify CA certificate provided with SSL_CERT_FILE environment variable!\n")
                 retValue = False
                 code = "%s %s" % (val.code, val.msg)
                 text = val.read()
@@ -98,9 +101,9 @@ class DataLoader(object):
 
     def __signature(self, data, salt):
         m = hashlib.md5()
-        m.update(self.password)
-        m.update(salt)
-        m.update(data)
+        m.update(self.password.encode())
+        m.update(salt.encode())
+        m.update(data.encode())
         return m.hexdigest()
 
     def __str__(self):
@@ -114,7 +117,7 @@ class DataLoader(object):
         else:
             for row in rows:
                 retVal += "Row %s:\n" % rowCnt
-                for column in row.keys():
+                for column in list(row.keys()):
                     retVal += "    %s: %s\n" % (column, str(row.get(column)))
                 rowCnt += 1
         return retVal
@@ -164,25 +167,26 @@ class DataQuery:
             parameters['o'] = order
         if limit is not None:
             parameters['l'] = limit
-        fullUrl = self.url + '?' + urllib.urlencode(parameters)
+        fullUrl = self.url + '?' + urllib.parse.urlencode(parameters)
         if len(wclause):
-            fullUrl = fullUrl + '&' + urllib.urlencode(wclause)
+            fullUrl = fullUrl + '&' + urllib.parse.urlencode(wclause)
         if echoUrl:
-            print "Url: %s" % fullUrl
-        req = urllib2.Request(fullUrl)
+            print(("Url: %s" % fullUrl))
+        req = urllib.request.Request(fullUrl)
         ssl_cert_file = os.environ.get("SSL_CERT_FILE")
         try:
-            resp = urllib2.urlopen(req) if ssl_cert_file else urllib2.urlopen(req, context=ssl._create_unverified_context())
-        except urllib2.HTTPError as val:
+            resp = urllib.request.urlopen(req) if ssl_cert_file else urllib.request.urlopen(req, context=ssl.SSLContext())
+        except urllib.error.HTTPError as val:
             retValue = False
             code = "%s %s" % (val.code, val.msg)
-            text = val.read()
-            print "\n*** %s:" % code, text
-        except urllib2.URLError:
+            text = val.read().decode()
+            print(f"\n*** ", code, text)
+        except urllib.error.URLError:
             if fullUrl.lower().startswith("https") and ssl_cert_file:
-                print "\n*** Please verify CA certificate provided with SSL_CERT_FILE environment variable!\n"
+                print("\n*** Please verify CA certificate provided with SSL_CERT_FILE environment variable!\n")
+            pass
         else:
-            text = resp.read()
+            text = resp.read().decode()
             data = text.split('\n')
             return data[1:]
 
