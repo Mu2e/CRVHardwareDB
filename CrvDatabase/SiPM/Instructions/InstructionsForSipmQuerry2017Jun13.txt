@@ -1,0 +1,4 @@
+These are instruction for running the sipmQuerry scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2017Jun26

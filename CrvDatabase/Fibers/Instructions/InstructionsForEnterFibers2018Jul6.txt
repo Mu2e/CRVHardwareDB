@@ -1,0 +1,50 @@
+These are instruction for running the guiExtrusions scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2018Jul6
+This is a GUI-base script to enter the Extrusion information
+into the hardware database.
+The input is a comma-separated file (.cvs).
+
+1) Enter fiber number:
+  a) Get Input File
+     (open dialog appears) choose: 
+      2018FiberSpreadSheets/180425 DATA sheet for UNIVERSITY OF VIRGINIA.csv
+  b) Click "Add Fibers"
+  c) Exit script: "Quit"
+2) Add some vendor measurements:
+  a) Get Input File
+     (open dialog appears) choose: 
+      2018FiberSpreadSheets/180425 DATA sheet for UNIVERSITY OF VIRGINIA.csv
+  b) Click "Vendor Measurements"
+  c) Exit script: "Quit"
+
+3) Add some local diameter measurements:
+  a) Get Input File
+     (open dialog appears) choose: 
+      2018FiberSpreadSheets/Fiber-QA-fiberdiameter-2018Jun13.csv
+  b) Click "Vendor Measurements"
+  c) Exit script: "Quit"
+
+#4) Add some vendor attenuation vs distance  measurements:
+#  a) Get Input File
+#     (open dialog appears) choose: 
+#      2018FiberSpreadSheets/180425 DATA sheet for UNIVERSITY OF VIRGINIA.csv
+#  b) Click "Vendor Attenuation Measurements"
+#  c) Exit script: "Quit"
+
+5) Add some local attenuation (light yeild) vs wavelength  measurements (this may be done more than once):
+  a) Get Input File
+     (open dialog appears) choose: 
+      2018FiberSpreadSheets/Fiber-QA-spectrometer-2018Jun13.csv.csv
+  b) Click "Local Wavelength Measurements"
+  c) Exit script: "Quit"
+
+The "Turn on Test" button allows this script to run without
+sending information to the database.
+
+The "Turn on Debug" button turns on the debug statements that
+are writen to stdin (i.e. the terminal window) that this
+script was started.
+
+The "Quit" button is self-explained!

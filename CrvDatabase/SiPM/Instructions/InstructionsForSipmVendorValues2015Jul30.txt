@@ -1,0 +1,50 @@
+Instructions for running
+  sipmVendorMeasurements
+Written by 
+  C M Jenkins
+  Department of Physics
+  Univeristy of South Alabama
+For: Mu2e Experiment
+2015July
+
+This script is intended for entering
+the vendor supplied values of
+    bias voltage
+    dark count
+    gain
+for each SiPM recieved.
+
+1) Enter the worker barcode....
+    press the 'Enter' button... 
+    it turns "yellow"
+      all worker barcodes start with the 
+      prefix "wk-"
+2) Enter the Institution
+    press the 'Enter' button... 
+    it turns "yellow"
+3) Enter the workstation
+    press the 'Enter' button... 
+    it turns "yellow"
+      Qll workstation barcodes start with
+      the prefix "ws-"
+4) Enter the SiPM number
+    press the 'Enter' button... 
+    it turns "yellow"
+5) Enter the vendor supplied bais voltage,
+      dark count and gain
+    press the 'Enter' button... 
+    it turns "yellow"
+6) Press 'Enter to DataBase' button to
+    enter results into the database...  
+    Afterwards all quantities
+    that have to be re-entered will have their
+    buttons cleared from the color "yellow"
+    to the default color.
+
+The last ten SiPM Id's entered into the 
+database may be viewed by clicking the 
+"get database results" button
+
+**  Note all worker barcodes and institutions
+    must be entered in the database.. if yours
+    is not present, contact a database administrator

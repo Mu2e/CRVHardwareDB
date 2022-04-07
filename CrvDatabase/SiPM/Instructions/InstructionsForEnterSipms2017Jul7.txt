@@ -1,0 +1,35 @@
+These are instruction for running the guiSipms scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2017Jul7
+This is a GUI-base script to enter the Sipm information.
+The input is a comma-separated file (.cvs) generated from a 
+spreadsheet such as the template:
+
+Sipms_151224_S13360-2050VE_data_2016Jun27.xlsx
+
+That is found in the SiPMSpreadSheets subdirectory.
+
+Click the "Get Input File" button to bring up the 
+open file dialogn box.  Spool to the subdirectory
+containing the ".cvs" file and click "open"
+
+1) Enter the initial Sipm information into the database:
+click the 'Enter Purchase Order" button.  This enters the 
+purchase order (batch) and the batch, which is obsolete as
+all sipms are delivered at the same time.  This also enters
+the vendor supplied measurements.
+
+2) After local measurments of quantities are made and saved
+to the ".cvs" file, click "Enter Local Measurements" to enter
+the locally measured values for those sipms measured into 
+the database.
+
+The "Turn on Test" button allows this script to run without
+sending information to the database.
+
+The "Turn on Debug" button turns on the debug statements that
+are writen to stdin (i.e. the terminal window) that this
+script was started.
+
+The "Quit" button is self-explained!

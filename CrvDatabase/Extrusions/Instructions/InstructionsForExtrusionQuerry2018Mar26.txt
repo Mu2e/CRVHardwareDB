@@ -1,0 +1,22 @@
+These are instruction for running the extrusionQuerry scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    March 26, 2018
+
+This script will produced a root tree containing the values saved from a selected
+set of extrusion batches.  The root tree is saved in the "logfile" subdirectory
+with the date and time of creation as part of the file name.
+
+Using the Scroll box (on the left)
+1) Double left click a batch to be included in the root tree file.
+2) Click the light blue "Batches" button
+3) Click the green "Histogram" button.
+4) Click the red "Exit" button.
+5) The root tree will be found in the "logfile" subdirectory with the date and time of creation.
+
+Using the Extrusion Batch text box.
+This option is for a single extrusion batch
+1) Enter the batch name as it appears in the scroll box.
+2) Click the Enter button.
+3) Click the red "Quit" button
+4) The root tree will be found in the "logfile" subdirectory with the date and time of creation

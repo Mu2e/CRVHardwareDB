@@ -1,0 +1,18 @@
+##
+## File = "makeSipmLibZipFile"
+##
+##	Generate tar file for goodSipm script
+##
+#!/bin/sh
+ZIPFILE_NAME="SiPMlib.zip"
+echo "zipfile name:"$ZIPFILE_NAME
+zip -r $ZIPFILE_NAME mu2e_SiPM_2016Jun24.py mu2e_SiPMPurchaseOrders_2016Jun24.py \
+mu2e_SiPMReceivedPurchaseOrders_2016Jun24.py sipm2016Jun24.py \
+sipmLocalMeasurements2016Jun24.py sipmPurchaseOrder2016Jun24.py \
+sipmRecievedBatches2016Jun24.py sipmVendorMeasurements2016Jun24.py
+##
+##  Check the zipfile
+date
+echo 'Make Zipfile: '$ZIPFILE_NAME
+unzip -l $ZIPFILE_NAME
+

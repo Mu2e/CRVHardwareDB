@@ -1,0 +1,40 @@
+Instructions for running
+  sipm
+Written by 
+  C M Jenkins
+  Department of Physics
+  Univeristy of South Alabama
+For: Mu2e Experiment
+2015July
+
+1) Enter the Purchase order number
+    press the 'Enter' button... 
+    it turns "yellow"
+2) Enter the worker barcode....
+    press the 'Enter' button... 
+    it turns "yellow"
+      all worker barcodes start with the 
+      prefix "wk-"
+3) Enter the Institution
+    press the 'Enter' button... 
+    it turns "yellow"
+4) Enter the batch number received
+    press the 'Enter' button... 
+    it turns "yellow"
+5) Enter the SiPM Id number
+    press the 'Enter' button... 
+    it turns "yellow"
+6) Press 'Enter SiPM' to enter values
+    into database....
+    Afterwards all quantities
+    that have to be re-entered will have their
+    buttons cleared from the color "yellow"
+    to the default color.
+
+The last ten SiPM Id's entered into the 
+database may be viewed by clicking the 
+"get database results" button
+
+**  Note all worker barcodes and institutions
+    must be entered in the database.. if yours
+    is not present, contact a database administrator
