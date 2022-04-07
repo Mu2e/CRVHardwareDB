@@ -1,24 +1,28 @@
 # -*- coding: utf-8 -*-
 ##
-##	A python script to read the Sipm tables in the hardware database
-##	and display the overall Sipm status for a selected pack number
+##      A python script to read the Sipm tables in the hardware database
+##      and display the overall Sipm status for a selected pack number
 ##
 ##   Merrill Jenkins
 ##   Department of Physics
 ##   University of South Alabama
 ##   2019Jan30
 ##  Modified by cmj2016Jun24.Sipm.py.. Add one more upward level for subdirectory to get to the utilities directory
-##				for dataloader... place the CRV utilities directory in the "crvUtilities" directory
-##	Modified by cmj2019Feb28... Change the default database to production.
+##                        for dataloader... place the CRV utilities directory in the "crvUtilities" directory
+##      Modified by cmj2019Feb28... Change the default database to production.
 ##   Modified by cmj2020Jul14... Add Progress bar
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3
+##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##
 #!/bin/env python
-from Tkinter import *         # get widget class
-import Tkinter as tk
-from ttk import *             # get tkk widget class (for progess bar)
-import tkFileDialog
+from tkinter import *         # get widget class
+import tkinter as tk
+from tkinter.ttk import *             # get tkk widget class (for progess bar)
+import tkinter.filedialog
 import os
 import sys        ## 
 import optparse   ## parser module... to parse the command line arguments
@@ -30,18 +34,18 @@ sys.path.append("../CrvUtilities/crvUtilities.zip")      ## 2018Oct2 add highlig
 from DataLoader import *   ## module to read/write to database....
 from databaseConfig import *
 from cmjGuiLibGrid import *  ## cmj2020Aug03
-from Modules import *
+from ModulesNonStaggered import *
 #import SipmMeasurements
 ##
 ProgramName = "checkModule.py"
-Version = "version2020.12.16"
+Version = "version2021.05.12"
 ##
 ##
 ##
 ##
 ## -------------------------------------------------------------
-## 	A class to set up the main window to drive the
-##	python GUI
+##       A class to set up the main window to drive the
+##      python GUI
 ##
 class multiWindow(Frame):
   def __init__(self,parent=NONE, myRow = 0, myCol = 0):
@@ -52,11 +56,11 @@ class multiWindow(Frame):
     self.__database_config  = databaseConfig()
     self.setupDevelopmentDatabase()  ## set up communications with database
     self.__cmjDebug = 0 ## default... not debug messages printed out
-			##  Limit number of sipms read in for tests.... set negative to read all
-    self.__cmjTest = 0	## set this to 1 to look at 10 sipm_id's
+                  ##  Limit number of sipms read in for tests.... set negative to read all
+    self.__cmjTest = 0      ## set this to 1 to look at 10 sipm_id's
     self.__progressBarCount = tk.DoubleVar()  ## for progress bar
     self.__progressBarCount.set(0)            ## for progress bar
-##	Define Output Log file... remove this later
+##      Define Output Log file... remove this later
     self.__mySaveIt = saveResult()
     self.__mySaveIt.setOutputFileName('checkModule')
     self.__mySaveIt.openFile()
@@ -71,44 +75,44 @@ class multiWindow(Frame):
     self.__entryWidth = self.__gridWidth
     self.__buttonWidth = self.__gridWidth
     #self.__packNumber = 0
-    self.__moduleDiCounterId_dict = defaultdict(dict)  	## Nested dictionary to hold the diCounerId at
-							## position and layer in a module 
-							## (keys: [layer][position]
-							## layer ranges from top to bottom: layer1, layer2, layer3, layer4
-							## position 0, 1, 2, 3, 4, 5, 6, 7
-    self.__moduleCmb_top_dict = defaultdict(dict)  	## Nested dictionary to hold the top Cmb_id at
-							## position and layer in a module 
-							## (keys: [layer][position]
-							## layer ranges from top to bottom: layer1, layer2, layer3, layer4
-							## position 0, 1, 2, 3, 4, 5, 6, 7
-    self.__moduleCmb_bot_dict = defaultdict(dict)  	## Nested dictionary to hold the bottom Cmb_id at
-							## position and layer in a module 
-							## (keys: [layer][position]
-							## layer ranges from top to bottom: layer1, layer2, layer3, layer4
-							## position 0, 1, 2, 3, 4, 5, 6, 7 
-    self.__moduleSmb_top_dict = defaultdict(dict)  	## Nested dictionary to hold the top Smb_id at
-							## position and layer in a module 
-							## (keys: [layer][position]
-							## layer ranges from top to bottom: layer1, layer2, layer3, layer4
-							## position 0, 1, 2, 3, 4, 5, 6, 7
-    self.__moduleSmb_bot_dict = defaultdict(dict)  	## Nested dictionary to hold the bottom Smb_id at
-							## position and layer in a module 
-							## (keys: [layer][position]
-							## layer ranges from top to bottom: layer1, layer2, layer3, layer4
-							## position 0, 1, 2, 3, 4, 5, 6, 7
+    self.__moduleDiCounterId_dict = defaultdict(dict)        ## Nested dictionary to hold the diCounerId at
+                                          ## position and layer in a module 
+                                          ## (keys: [layer][position]
+                                          ## layer ranges from top to bottom: layer1, layer2, layer3, layer4
+                                          ## position 0, 1, 2, 3, 4, 5, 6, 7
+    self.__moduleCmb_top_dict = defaultdict(dict)        ## Nested dictionary to hold the top Cmb_id at
+                                          ## position and layer in a module 
+                                          ## (keys: [layer][position]
+                                          ## layer ranges from top to bottom: layer1, layer2, layer3, layer4
+                                          ## position 0, 1, 2, 3, 4, 5, 6, 7
+    self.__moduleCmb_bot_dict = defaultdict(dict)        ## Nested dictionary to hold the bottom Cmb_id at
+                                          ## position and layer in a module 
+                                          ## (keys: [layer][position]
+                                          ## layer ranges from top to bottom: layer1, layer2, layer3, layer4
+                                          ## position 0, 1, 2, 3, 4, 5, 6, 7 
+    self.__moduleSmb_top_dict = defaultdict(dict)        ## Nested dictionary to hold the top Smb_id at
+                                          ## position and layer in a module 
+                                          ## (keys: [layer][position]
+                                          ## layer ranges from top to bottom: layer1, layer2, layer3, layer4
+                                          ## position 0, 1, 2, 3, 4, 5, 6, 7
+    self.__moduleSmb_bot_dict = defaultdict(dict)        ## Nested dictionary to hold the bottom Smb_id at
+                                          ## position and layer in a module 
+                                          ## (keys: [layer][position]
+                                          ## layer ranges from top to bottom: layer1, layer2, layer3, layer4
+                                          ## position 0, 1, 2, 3, 4, 5, 6, 7
     self.__moduleSipmSignOff_dict = {} ## Dictionary to hold the Sipm Signoff status: key SipmId
     self.__nestedDirectory = generalUtilities()
     self.__moduleSipmId_top_nest_dict = self.__nestedDirectory.nestedDict()  ## A nested dictionary to hold a dictionary that holds the
-								## current the SipmId at the top some location on the di-counter
-								## the keys are [layer][[position][sipmPosition]]	
-								## position 0, 1, 2, 3, 4, 5, 6, 7
+                                                ## current the SipmId at the top some location on the di-counter
+                                                ## the keys are [layer][[position][sipmPosition]]      
+                                                ## position 0, 1, 2, 3, 4, 5, 6, 7
     self.__moduleSipmId_bot_nest_dict = self.__nestedDirectory.nestedDict()  ## A nested dictionary to hold a dictionary that holds the
-								## current the SipmId at the bottom some location on the di-counter
-								## the keys are [layer][[position][sipmPosition]]	
-								## position 0, 1, 2, 3, 4, 5, 6, 7
+                                                ## current the SipmId at the bottom some location on the di-counter
+                                                ## the keys are [layer][[position][sipmPosition]]      
+                                                ## position 0, 1, 2, 3, 4, 5, 6, 7
     self.__sipmSignoffStatus_color='black'
 ##
-##	Display the Control Box  Frame here..
+##      Display the Control Box  Frame here..
     self.__frame0 = tk.Frame(self.__masterFrame,bg=self.__defaultBackGroundColor)
     self.__frame0.grid(row=0,column=0,columnspan=3,sticky=NSEW)
 ##
@@ -125,10 +129,10 @@ class multiWindow(Frame):
     #self.tempSelection = self.__checkBox.getCheckBoxSelection()
     self.__row += 3
     self.__col = 0
-    if(self.__cmjDebug > 0) : print("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection)
+    if(self.__cmjDebug > 0) : print(("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection))
     self.__buttonName = 'Module '
     self.StringEntrySetup(self.__frame0,self.__row,self.__col,self.__labelWidth,self.__entryWidth,self.__buttonWidth,buttonName=self.__buttonName)
-##	Third Column...
+##      Third Column...
     self.__row = 0
     self.__col = 6
     self.__logo = mu2eLogo(self.__frame0,self.__row,self.__col)     # display Mu2e logo!
@@ -158,14 +162,14 @@ class multiWindow(Frame):
     self.__progressbar = Progressbar(self.__frame0,orient=HORIZONTAL,length=200,maximum=1000,variable=self.__progressBarCount,mode='determinate')
     self.__progressbar.grid(row=self.__row,column=0,columnspan=5,sticky=W)
     self.__row += 1
-##	Add Control Bar at the bottom...
+##      Add Control Bar at the bottom...
     self.__quitNow = Quitter(self.__frame0,0,self.__col)
     self.__quitNow.grid(row=self.__row,column=0,sticky=W)
 ##  
 ## -------------------------------------------------------------------
 ##  Define a frame to hold a graphic of the module side
 ##  This function is called from the checkbox function:
-##  	self.changeTestState()
+##        self.changeTestState()
   def modulePicture(self):
     self.__frame3 = tk.Frame(self.__masterFrame,bg=self.__defaultBackGroundColor)
     self.__frame3.grid(row=0,column=4,columnspan=4,sticky=tk.NSEW)
@@ -180,7 +184,7 @@ class multiWindow(Frame):
     self.__canvas_frame3.grid(row=self.__row,column=self.__col)
 ##
 ## -------------------------------------------------------------------
-##	Make querries to data base
+##      Make querries to data base
   def setupDevelopmentDatabase(self):
     self.__database = 'mu2e_hardware_dev'
     self.__group = "Sipm Tables"
@@ -189,7 +193,7 @@ class multiWindow(Frame):
     self.__queryUrl = self.__database_config.getQueryUrl()
 ##
 ## -------------------------------------------------------------------
-##	Make querries to data base
+##      Make querries to data base
   def setupProductionDatabase(self):
     self.__database = 'mu2e_hardware_prd'
     self.__group = "Sipm Tables"
@@ -200,7 +204,7 @@ class multiWindow(Frame):
 ## -------------------------------------------------------------------
   def setDebugLevel(self,tempDebugLevel):
     self.__cmjDebug = tempDebugLevel
-    print("...multiWindow::getFromProductionDatabase... Set Debug Level to = %s \n") % (self.__cmjDebug)
+    print(("...multiWindow::getFromProductionDatabase... Set Debug Level to = %s \n") % (self.__cmjDebug))
 ##
 ## ------------------------------------------------------------------
 ##  Returns a color string for a Sipm Signoff status
@@ -215,7 +219,7 @@ class multiWindow(Frame):
 ## -----------------------------------------------------------------
   def setStatusGrid2(self,tempSide):
     self.__localSide = tempSide
-    if(self.__cmjDebug > 1) : print("setStatusGrid2... self.__localSide %s \n") % (self.__localSide)
+    if(self.__cmjDebug > 1) : print(("setStatusGrid2... self.__localSide %s \n") % (self.__localSide))
     ## define the frame that holds the legend on the left hand side.
     self.__frame1 = tk.LabelFrame(self.__masterFrame) ## define frame to contain legend to the left
     self.__frame1.grid(row=1,column=0,sticky=tk.NSEW)
@@ -315,19 +319,19 @@ class multiWindow(Frame):
     self.__position_list_bot = ['7','6','5','4','3','2','1','0']
     self.__sipm_position_list_top = ['a1','a2','a3','a4']
     self.__sipm_position_list_bot = ['b1','b2','b3','b4']
-    self.__cmb = defaultdict(dict)  	## Nested dictionary to hold the bottom cmb_squares at
-					## position and layer in a module 
-					## (keys: [layer][position]
-    self.__smb = defaultdict(dict)  	## Nested dictionary to hold the bottom cmb_squares at
-					## position and layer in a module 
-					## (keys: [layer][position]
-    self.__di = defaultdict(dict)  	## Nested dictionary to hold the bottom cmb_squares at
-					## position and layer in a module 
-					## (keys: [layer][position]
+    self.__cmb = defaultdict(dict)        ## Nested dictionary to hold the bottom cmb_squares at
+                              ## position and layer in a module 
+                              ## (keys: [layer][position]
+    self.__smb = defaultdict(dict)        ## Nested dictionary to hold the bottom cmb_squares at
+                              ## position and layer in a module 
+                              ## (keys: [layer][position]
+    self.__di = defaultdict(dict)        ## Nested dictionary to hold the bottom cmb_squares at
+                              ## position and layer in a module 
+                              ## (keys: [layer][position]
     self.__sipm_nest_dict = self.__nestedDirectory.nestedDict()  ## A nested dictionary to hold a dictionary that holds the
-								## current the Sipm at some location on the di-counter
-								## the keys are [layer][[position][sipmPosition]]	
-								## position 0, 1, 2, 3, 4, 5, 6, 7
+                                                ## current the Sipm at some location on the di-counter
+                                                ## the keys are [layer][[position][sipmPosition]]      
+                                                ## position 0, 1, 2, 3, 4, 5, 6, 7
     self.__tempColumn = self.__col0
     self.__tempRow = 2
     ##  Print position banner
@@ -351,129 +355,129 @@ class multiWindow(Frame):
       self.update()  ## update the progress bar...
       mmm = self.__layer_list[mm]
       for nn in range(0,8):
-	if(self.__localSide == 'top') : nnn = self.__position_list_top[nn]
-	elif(self.__localSide == 'bottom') : nnn = self.__position_list_bot[nn]
-	
-	##-------------+++
-	##   --- smb ---
-	self.__smb[mmm][nnn] = myLabel(self.__moduleGridFrame,self.__tempRow+1,self.__tempColumn,int(4*self.__gridWidth))
-	if(self.__localSide == 'top') : 
-	  try:
-	    if(self.__moduleSmb_top_dict[mmm][nnn].find('REFLECTOR') != -1):
-	      self.__smb[mmm][nnn].setText('REFLECTOR')
-	      self.__smb[mmm][nnn].setBackgroundColor(self.__reflectorColor)
-	    elif (self.__moduleSmb_top_dict[mmm][nnn].find('ABSORBER') != -1):
-	      self.__smb[mmm][nnn].setText('ABSORBER')
-	      self.__smb[mmm][nnn].setBackgroundColor(self.__absorberColor)
-	    else:
-	      self.__smb[mmm][nnn].setText(self.__moduleSmb_top_dict[mmm][nnn])
-	      self.__smb[mmm][nnn].setBackgroundColor(self.__smbColor)
-	  except:
-	    self.__smb[mmm][nnn].setText('N/A')
-	    self.__smb[mmm][nnn].setBackgroundColor(self.__missingColor)
-	elif(self.__localSide == 'bottom') : 
-	  try:
-	    tempSmb = str(self.__moduleSmb_bot_dict[mmm][nnn])
-	    if(tempSmb.find('REFLECTOR') != -1) :
-	      self.__smb[mmm][nnn].setText('REFLECTOR')
-	      self.__smb[mmm][nnn].setBackgroundColor(self.__reflectorColor)
-	    elif (tempSmb.find('ABSORBER') != -1):
-	      self.__smb[mmm][nnn].setText('ABSORBER')
-	      self.__smb[mmm][nnn].setBackgroundColor(self.__absorberColor)
-	    else:
-	      self.__smb[mmm][nnn].setText(tempSmb)
-	      self.__smb[mmm][nnn].setBackgroundColor(self.__smbColor)
-	  except:
-	    self.__smb[mmm][nnn].setText('N/A')
-	    self.__smb[mmm][nnn].setBackgroundColor(self.__missingColor)
-	self.__smb[mmm][nnn].setBorder(self.__borderWidth,self.__borderStyle)
-	self.__smb[mmm][nnn].grid(row=self.__tempRow,column=self.__tempColumn,columnspan=4)
-	##-------------+++
-	
-	##    ---- cmb ----
-	self.__cmb[mmm][nnn] = myLabel(self.__moduleGridFrame,self.__tempRow,self.__tempColumn,int(4*self.__gridWidth))
-	if(self.__localSide == 'top') : 
-	  try:
-	    if(self.__moduleCmb_top_dict[mmm][nnn].find('REFLECTOR') != -1):
-	      self.__cmb[mmm][nnn].setText('REFLECTOR')
-	      self.__cmb[mmm][nnn].setBackgroundColor(self.__reflectorColor)
-	    elif(self.__moduleCmb_top_dict[mmm][nnn].find('ABSORBER') != -1):
-	      self.__cmb[mmm][nnn].setText('ABSORBER')
-	      self.__cmb[mmm][nnn].setBackgroundColor(self.__absorberColor)
-	    else:
-	      self.__cmb[mmm][nnn].setText(self.__moduleCmb_top_dict[mmm][nnn])
-	      self.__cmb[mmm][nnn].setBackgroundColor(self.__cmbColor)
-	  except:
-	    self.__cmb[mmm][nnn].setText('N/A')
-	    self.__cmb[mmm][nnn].setBackgroundColor(self.__missingColor)
-	elif(self.__localSide == 'bottom') : 
-	  try:
-	    if(self.__moduleCmb_bot_dict[mmm][nnn].find('REFLECTOR') != -1):
-	     self.__cmb[mmm][nnn].setText('REFLECTOR')
-	     self.__cmb[mmm][nnn].setBackgroundColor(self.__reflectorColor) 
-	    elif(self.__moduleCmb_bot_dict[mmm][nnn].find('ABSORBER') != -1):
-	     self.__cmb[mmm][nnn].setText('ABSORBER')
-	     self.__cmb[mmm][nnn].setBackgroundColor(self.__absorberColor)
-	    else:
-	      self.__cmb[mmm][nnn].setText(self.__moduleCmb_bot_dict[mmm][nnn])
-	      self.__cmb[mmm][nnn].setBackgroundColor(self.__cmbColor)
-	  except:
-	    self.__cmb[mmm][nnn].setText('N/A')
-	    self.__cmb[mmm][nnn].setBackgroundColor(self.__missingColor)
-	self.__cmb[mmm][nnn].setBorder(self.__borderWidth,self.__borderStyle)
-	self.__cmb[mmm][nnn].setFontSize('12')
-	self.__cmb[mmm][nnn].grid(row=self.__tempRow+1,column=self.__tempColumn,columnspan=4)
+        if(self.__localSide == 'top') : nnn = self.__position_list_top[nn]
+        elif(self.__localSide == 'bottom') : nnn = self.__position_list_bot[nn]
+      
+      ##-------------+++
+      ##   --- smb ---
+        self.__smb[mmm][nnn] = myLabel(self.__moduleGridFrame,self.__tempRow+1,self.__tempColumn,int(4*self.__gridWidth))
+        if(self.__localSide == 'top') : 
+          try:
+            if(self.__moduleSmb_top_dict[mmm][nnn].find('REFLECTOR') != -1):
+              self.__smb[mmm][nnn].setText('REFLECTOR')
+              self.__smb[mmm][nnn].setBackgroundColor(self.__reflectorColor)
+            elif (self.__moduleSmb_top_dict[mmm][nnn].find('ABSORBER') != -1):
+              self.__smb[mmm][nnn].setText('ABSORBER')
+              self.__smb[mmm][nnn].setBackgroundColor(self.__absorberColor)
+            else:
+              self.__smb[mmm][nnn].setText(self.__moduleSmb_top_dict[mmm][nnn])
+              self.__smb[mmm][nnn].setBackgroundColor(self.__smbColor)
+          except:
+            self.__smb[mmm][nnn].setText('N/A')
+            self.__smb[mmm][nnn].setBackgroundColor(self.__missingColor)
+        elif(self.__localSide == 'bottom') : 
+          try:
+            tempSmb = str(self.__moduleSmb_bot_dict[mmm][nnn])
+            if(tempSmb.find('REFLECTOR') != -1) :
+              self.__smb[mmm][nnn].setText('REFLECTOR')
+              self.__smb[mmm][nnn].setBackgroundColor(self.__reflectorColor)
+            elif (tempSmb.find('ABSORBER') != -1):
+              self.__smb[mmm][nnn].setText('ABSORBER')
+              self.__smb[mmm][nnn].setBackgroundColor(self.__absorberColor)
+            else:
+              self.__smb[mmm][nnn].setText(tempSmb)
+              self.__smb[mmm][nnn].setBackgroundColor(self.__smbColor)
+          except:
+            self.__smb[mmm][nnn].setText('N/A')
+            self.__smb[mmm][nnn].setBackgroundColor(self.__missingColor)
+        self.__smb[mmm][nnn].setBorder(self.__borderWidth,self.__borderStyle)
+        self.__smb[mmm][nnn].grid(row=self.__tempRow,column=self.__tempColumn,columnspan=4)
+      ##-------------+++
+      
+      ##    ---- cmb ----
+        self.__cmb[mmm][nnn] = myLabel(self.__moduleGridFrame,self.__tempRow,self.__tempColumn,int(4*self.__gridWidth))
+        if(self.__localSide == 'top') : 
+          try:
+            if(self.__moduleCmb_top_dict[mmm][nnn].find('REFLECTOR') != -1):
+              self.__cmb[mmm][nnn].setText('REFLECTOR')
+              self.__cmb[mmm][nnn].setBackgroundColor(self.__reflectorColor)
+            elif(self.__moduleCmb_top_dict[mmm][nnn].find('ABSORBER') != -1):
+              self.__cmb[mmm][nnn].setText('ABSORBER')
+              self.__cmb[mmm][nnn].setBackgroundColor(self.__absorberColor)
+            else:
+              self.__cmb[mmm][nnn].setText(self.__moduleCmb_top_dict[mmm][nnn])
+              self.__cmb[mmm][nnn].setBackgroundColor(self.__cmbColor)
+          except:
+            self.__cmb[mmm][nnn].setText('N/A')
+            self.__cmb[mmm][nnn].setBackgroundColor(self.__missingColor)
+        elif(self.__localSide == 'bottom') : 
+          try:
+            if(self.__moduleCmb_bot_dict[mmm][nnn].find('REFLECTOR') != -1):
+             self.__cmb[mmm][nnn].setText('REFLECTOR')
+             self.__cmb[mmm][nnn].setBackgroundColor(self.__reflectorColor) 
+            elif(self.__moduleCmb_bot_dict[mmm][nnn].find('ABSORBER') != -1):
+             self.__cmb[mmm][nnn].setText('ABSORBER')
+             self.__cmb[mmm][nnn].setBackgroundColor(self.__absorberColor)
+            else:
+              self.__cmb[mmm][nnn].setText(self.__moduleCmb_bot_dict[mmm][nnn])
+              self.__cmb[mmm][nnn].setBackgroundColor(self.__cmbColor)
+          except:
+            self.__cmb[mmm][nnn].setText('N/A')
+            self.__cmb[mmm][nnn].setBackgroundColor(self.__missingColor)
+        self.__cmb[mmm][nnn].setBorder(self.__borderWidth,self.__borderStyle)
+        self.__cmb[mmm][nnn].setFontSize('12')
+        self.__cmb[mmm][nnn].grid(row=self.__tempRow+1,column=self.__tempColumn,columnspan=4)
 
-	##  --- diCounters ---
-	self.__di[mmm][nnn] = myLabel(self.__moduleGridFrame,self.__tempRow+2,self.__tempColumn,int(4*self.__gridWidth))
-	try:
-	  self.__di[mmm][nnn].setText(self.__moduleDiCounterId_dict[mmm][nnn])
-	  self.__di[mmm][nnn].setBackgroundColor(self.__diCounterColor)
-	except:
-	  self.__di[mmm][nnn].setText('N/A')
-	  self.__di[mmm][nnn].setBackgroundColor(self.__missingColor)
-	self.__di[mmm][nnn].setBorder(self.__borderWidth,self.__borderStyle)
-	self.__di[mmm][nnn].grid(row=self.__tempRow+2,column=self.__tempColumn,columnspan=4)
-	##  -- Sipms ---
-	self.__sipmColumn = int(0)
-	for pp in range(0,4):
-	  if(self.__localSide == 'top') : ppp = self.__sipm_position_list_top[pp]
-	  elif(self.__localSide == 'bottom') : ppp = self.__sipm_position_list_bot[pp]
-	  self.__sipm_nest_dict[mmm][nnn][ppp] = myLabel(self.__moduleGridFrame,self.__tempRow+3,int(self.__tempColumn)+int(self.__sipmColumn),self.__gridWidth)
-	  if(self.__localSide == 'top') : 
-	    tempSipmId=str(self.__moduleSipmId_top_nest_dict[mmm][nnn][ppp])
-	    if(tempSipmId.find('N/A') != -1):
-	      self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
-	    elif (tempSipmId.find('defaultdict') != -1):
-	      self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
-	    else:
-	      self.__sipm_nest_dict[mmm][nnn][ppp].setText(self.__moduleSipmId_top_nest_dict[mmm][nnn][ppp])
-	  elif(self.__localSide == 'bottom') :
-	    tempSipmId = str(self.__moduleSipmId_bot_nest_dict[mmm][nnn][ppp])
-	    if (tempSipmId.find('N/A') != -1):
-	      self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
-	    elif (tempSipmId.find('defaultdict') !=-1 ):
-	      self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
-	    else:
-	      self.__sipm_nest_dict[mmm][nnn][ppp].setText(self.__moduleSipmId_bot_nest_dict[mmm][nnn][ppp])
-	  self.__sipm_nest_dict[mmm][nnn][ppp].setBorder(self.__borderWidth,self.__borderStyle)
-	  self.__tempSipmId2 = '#N/A'
-	  if(self.__localSide == 'top') : self.__tempSipmId2 = self.__moduleSipmId_top_nest_dict[mmm][nnn][ppp]
-	  if(self.__localSide == 'bottom') : self.__tempSipmId2 = self.__moduleSipmId_bot_nest_dict[mmm][nnn][ppp]
-	  if(self.__tempSipmId2[0] == 'A') : self.__tempColor = self.__moduleSipmSignOff_dict[self.__tempSipmId2]
-	  else : self.__tempColor = 'white'
-	  self.__sipm_nest_dict[mmm][nnn][ppp].setBackgroundColor(self.getSipmSignoffStatus(self.__tempColor))
-	  self.__sipm_nest_dict[mmm][nnn][ppp].setFontSize('6')
-	  self.__sipm_nest_dict[mmm][nnn][ppp].grid(row=self.__tempRow+3,column=int(self.__tempColumn)+int(self.__sipmColumn))
-	  self.__sipmColumn += 1
-	##
-	self.__tempColumn += 4
+      ##  --- diCounters ---
+        self.__di[mmm][nnn] = myLabel(self.__moduleGridFrame,self.__tempRow+2,self.__tempColumn,int(4*self.__gridWidth))
+        try:
+          self.__di[mmm][nnn].setText(self.__moduleDiCounterId_dict[mmm][nnn])
+          self.__di[mmm][nnn].setBackgroundColor(self.__diCounterColor)
+        except:
+          self.__di[mmm][nnn].setText('N/A')
+          self.__di[mmm][nnn].setBackgroundColor(self.__missingColor)
+        self.__di[mmm][nnn].setBorder(self.__borderWidth,self.__borderStyle)
+        self.__di[mmm][nnn].grid(row=self.__tempRow+2,column=self.__tempColumn,columnspan=4)
+      ##  -- Sipms ---
+        self.__sipmColumn = int(0)
+        for pp in range(0,4):
+          if(self.__localSide == 'top') : ppp = self.__sipm_position_list_top[pp]
+          elif(self.__localSide == 'bottom') : ppp = self.__sipm_position_list_bot[pp]
+          self.__sipm_nest_dict[mmm][nnn][ppp] = myLabel(self.__moduleGridFrame,self.__tempRow+3,int(self.__tempColumn)+int(self.__sipmColumn),self.__gridWidth)
+          if(self.__localSide == 'top') : 
+            tempSipmId=str(self.__moduleSipmId_top_nest_dict[mmm][nnn][ppp])
+            if(tempSipmId.find('N/A') != -1):
+              self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
+            elif (tempSipmId.find('defaultdict') != -1):
+              self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
+            else:
+              self.__sipm_nest_dict[mmm][nnn][ppp].setText(self.__moduleSipmId_top_nest_dict[mmm][nnn][ppp])
+          elif(self.__localSide == 'bottom') :
+            tempSipmId = str(self.__moduleSipmId_bot_nest_dict[mmm][nnn][ppp])
+            if (tempSipmId.find('N/A') != -1):
+              self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
+            elif (tempSipmId.find('defaultdict') !=-1 ):
+              self.__sipm_nest_dict[mmm][nnn][ppp].setText('N/A')
+            else:
+              self.__sipm_nest_dict[mmm][nnn][ppp].setText(self.__moduleSipmId_bot_nest_dict[mmm][nnn][ppp])
+          self.__sipm_nest_dict[mmm][nnn][ppp].setBorder(self.__borderWidth,self.__borderStyle)
+          self.__tempSipmId2 = '#N/A'
+          if(self.__localSide == 'top') : self.__tempSipmId2 = self.__moduleSipmId_top_nest_dict[mmm][nnn][ppp]
+          if(self.__localSide == 'bottom') : self.__tempSipmId2 = self.__moduleSipmId_bot_nest_dict[mmm][nnn][ppp]
+          if(self.__tempSipmId2[0] == 'A') : self.__tempColor = self.__moduleSipmSignOff_dict[self.__tempSipmId2]
+          else : self.__tempColor = 'white'
+          self.__sipm_nest_dict[mmm][nnn][ppp].setBackgroundColor(self.getSipmSignoffStatus(self.__tempColor))
+          self.__sipm_nest_dict[mmm][nnn][ppp].setFontSize('6')
+          self.__sipm_nest_dict[mmm][nnn][ppp].grid(row=self.__tempRow+3,column=int(self.__tempColumn)+int(self.__sipmColumn))
+          self.__sipmColumn += 1
+      ##
+        self.__tempColumn += 4
       self.__tempColumn = self.__col0
       self.__tempRow += 4
     self.__canvas1.create_window((0,0),window=self.__moduleGridFrame,anchor=tk.NW)  ## make window to hold the canvas
     self.__moduleGridFrame.update_idletasks() ## Make box information (below) available 
     self.__bbox = self.__canvas1.bbox(tk.ALL) ## Get the dimensions of the bounding box holding the canvas
-    if(self.__cmjDebug > 2) : print("bbox1 =%s bbox2 = %s bbox3 = %s  \n")%(self.__bbox[1],self.__bbox[2],self.__bbox[3])
+    if(self.__cmjDebug > 2) : print(("bbox1 =%s bbox2 = %s bbox3 = %s  \n")%(self.__bbox[1],self.__bbox[2],self.__bbox[3]))
     self.__width = self.__bbox[2]-self.__bbox[1]
     self.__height = self.__bbox[3]-self.__bbox[1]
     self.__COLS = 36  ## define the number of columns in the grid
@@ -487,8 +491,8 @@ class multiWindow(Frame):
 ## ------------------------------------------------------------------
 ##
 ## ===================================================================
-##	Local String Entry button
-##	Need to setup here to retain local program flow
+##      Local String Entry button
+##      Need to setup here to retain local program flow
   def StringEntrySetup(self,tempFrame,tempRow,tempCol,totWidth=20,labelWidth=10,entryWidth=10,entryText='',buttonName='default',buttonText='Enter'):
     self.__LocalFrame = tempFrame
     self.__StringEntry_row = tempRow
@@ -517,7 +521,7 @@ class multiWindow(Frame):
     self.__StringEntry_result = self.__ent.get()
     self.__button.config(bg='yellow')
     self.getDiCountersInModule(self.__StringEntry_result)
-    print("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result)
+    print(("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result))
     return self.__StringEntry_result
 ## -----------------------------------------------------------------------------------
 ##    A class to add a row of  check boxes
@@ -534,12 +538,12 @@ class multiWindow(Frame):
     self.__tempVar = {}
     if (self.__cmjDebug > 8):
       for temp in sorted(self.__checkTestSet.keys()):
-	print ('--- myRowCheck::initializeCheckList... keys = %s selfcheckTestSet = %s') % (temp,self.__checkTestSet[temp])
+        print(('--- myRowCheck::initializeCheckList... keys = %s selfcheckTestSet = %s') % (temp,self.__checkTestSet[temp]))
   def makeChecks(self):
     self.__label = Label(self.__localFrame,text=self.__checkText,anchor=W,justify=LEFT)
     self.__label.grid(row=self.__row,column=self.__col,sticky=W,columnspan=len(self.__checkTestSet)-1)
     if (self.__cmjDebug > 8):
-      print '--- myRowCheck::initializeCheckList... self.__row = %d self.__col = %d' % (self.__row,self.__col)
+      print('--- myRowCheck::initializeCheckList... self.__row = %d self.__col = %d' % (self.__row,self.__col))
     self.__row =+ 2
     for self.__key in sorted(self.__checkTestSet.keys()):
       self.__var  = IntVar()
@@ -548,7 +552,7 @@ class multiWindow(Frame):
       self.__checkbutton.grid(row=self.__row,column=self.__col,sticky=W)
       self.__col += 1
       if (self.__cmjDebug > 8):
-	print '--- myRowCheck::initializeCheckList... self.__var.get() = %s ' % self.__var.get()
+        print('--- myRowCheck::initializeCheckList... self.__var.get() = %s ' % self.__var.get())
       self.__tempVar[self.__key] = self.__var
     self.__button1 = Button(self.__localFrame,text='Enter',command=(lambda :self.changeTestState(self.__key)))
     self.__button1.config(bg='#E3E3E3')
@@ -559,44 +563,44 @@ class multiWindow(Frame):
 ##             that is record which check button is selected or "checked"
   def changeTestState(self,tempKey):
     if (self.__cmjDebug > 6):
-      print '--- myRowCheck::changeTestState... self.__tempVar.. Before Change'
+      print('--- myRowCheck::changeTestState... self.__tempVar.. Before Change')
       for nn in sorted(self.__tempVar.keys()):
-	print ('--- myRowCheck::changeTestState... keys = %s  tempVar = %s') % (nn,self.__tempVar[nn].get())
+        print(('--- myRowCheck::changeTestState... keys = %s  tempVar = %s') % (nn,self.__tempVar[nn].get()))
       for nn in sorted(self.__checkTestSet.keys()):
-	print ('--- myRowCheck::changeTestState... self.__checkTestSet.. keys = %s Value = %s')%(nn,self.__checkTestSet[nn])
-	## Load checkbox values into a dictionary whose values are integers
+        print(('--- myRowCheck::changeTestState... self.__checkTestSet.. keys = %s Value = %s')%(nn,self.__checkTestSet[nn]))
+      ## Load checkbox values into a dictionary whose values are integers
     for mmm in sorted(self.__checkTestSet.keys()):
       self.__checkTestSet[mmm] = self.__tempVar[mmm].get()
     if (self.__cmjDebug > 7): 
-      print '**************** self.__tempVar[mmm].get() %s ' % self.__tempVar[mmm]
+      print('**************** self.__tempVar[mmm].get() %s ' % self.__tempVar[mmm])
     if (self.__cmjDebug > 7):
-      print '--- myRowCheck::changeTestState... self.__checkTestSet after change'
+      print('--- myRowCheck::changeTestState... self.__checkTestSet after change')
       for mm in sorted(self.__checkTestSet.keys()):
-	print '--- myRowCheck::changeTestState... self.__checkTestSet:  keys = %s Value = %s'%(mm,self.__checkTestSet[mm])
+        print('--- myRowCheck::changeTestState... self.__checkTestSet:  keys = %s Value = %s'%(mm,self.__checkTestSet[mm]))
     self.__button1.config(bg='yellow')
     for mmm in sorted(self.__checkTestSet.keys()):
-      if (self.__cmjDebug > 7):print("mmm = %s self.__checkTestSet[mmm]= %s ") %(mmm,self.__checkTestSet[mmm])
+      if (self.__cmjDebug > 7):print(("mmm = %s self.__checkTestSet[mmm]= %s ") %(mmm,self.__checkTestSet[mmm]))
       if (self.__checkTestSet[mmm] == 1) :
-	self.__ModuleSideselection = mmm
-	break
+        self.__ModuleSideselection = mmm
+        break
     self.modulePicture()
-    print("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection)
+    print(("self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection))
     return
      ##  Allow the user to get the new selection.
   def getCheckBoxSelection(self):
     return self.__selection
   def reset(self):                   # a method to reset the checkboxes for next counter
-      if (self.__cmjDebug > 7): print '--- myRowCheck::reset... self.__vars  '  
+      if (self.__cmjDebug > 7): print('--- myRowCheck::reset... self.__vars  ')  
       for mm in sorted(self.__checkTestSet.keys()):
-	self.__checkTestSet[mm] = 0
+        self.__checkTestSet[mm] = 0
       for nn in sorted(self.__tempVar.keys()):
-	self.__tempVar[nn].set('0')        # reset the integer variable
-	self.__button1.config(bg='#E3E3E3')
+        self.__tempVar[nn].set('0')        # reset the integer variable
+        self.__button1.config(bg='#E3E3E3')
                
 ## ===================================================================   
 ##
 ## -------------------------------------------------------------------
-##	Make querries to data base for Sipm Status
+##      Make querries to data base for Sipm Status
   def setupDevelopmentDatabase(self):
     self.__database = 'mu2e_hardware_dev'
     self.__group = "Sipm Tables"
@@ -605,7 +609,7 @@ class multiWindow(Frame):
     self.__queryUrl = self.__database_config.getQueryUrl()
 ##
 ## -------------------------------------------------------------------
-##	Make querries to data base
+##      Make querries to data base
   def setupProductionDatabase(self):
     self.__database = 'mu2e_hardware_prd'
     self.__group = "Sipm Tables"
@@ -614,7 +618,7 @@ class multiWindow(Frame):
     self.__url = self.__database_config.getProductionQueryUrl()
 ## --------------------------------------------------------------------
 ## --------------------------------------------------------------------
-##	Make querries to get all sipm batches to data base
+##      Make querries to get all sipm batches to data base
   def getDiCountersInModule(self,moduleNumber):
     if(self.__cmjDebug > 0): print("... multiWindow::getDiCountersInModule\n") 
     self.__getDiCounterValues = DataQuery(self.__queryUrl)  ## first table for diCounters
@@ -639,30 +643,30 @@ class multiWindow(Frame):
     for n in range(0,self.__maxTries):
       #print (".... getDiCountersInModule: Query Try: n = %s \n") % (n)
       try: 
-	self.__localDataBaseLine1_list = self.__getDiCounterValues.query(self.__database,self.__table1,self.__fetchThese1,self.__fetchCondition1,'-'+self.__fetchThese1)
-	sleep(self.__sleepTime)  ## give time for database to answer
-	break ## exit loop
+        self.__localDataBaseLine1_list = self.__getDiCounterValues.query(self.__database,self.__table1,self.__fetchThese1,self.__fetchCondition1,'-'+self.__fetchThese1)
+        sleep(self.__sleepTime)  ## give time for database to answer
+        break ## exit loop
       except:
-	print(".... getDiCountersInModule: ****************** Database Query Error ***********************\n")
-	print (".... getDiCountersInModule: self.__localDataBaseLine1_list = self.__getDiCounterValues.query \n")
-	print (".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1)
-	print (".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1)
-	print (".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1)
-	print (".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list)
-	if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
+        print(".... getDiCountersInModule: ****************** Database Query Error ***********************\n")
+        print (".... getDiCountersInModule: self.__localDataBaseLine1_list = self.__getDiCounterValues.query \n")
+        print((".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1))
+        print((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
+        print((".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1))
+        print((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
+        if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
     if(self.__cmjDebug > 3): 
-	print (".... getDiCountersInModule: ================================================ \n") 
-	print (".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1)
-	print (".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1)
-	print (".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1)
-	print (".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list)
+      print (".... getDiCountersInModule: ================================================ \n") 
+      print((".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1))
+      print((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
+      print((".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1))
+      print((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
     xx = self.__progressBarCount.get()  ## get the current count for the progress bar
     self.__progressBarCount.set(xx+10)  ## increment the count
     self.update() ## update the progress bar
     self.__numberOfLines = len(self.__localDataBaseLine1_list)
     self.__diCounter = 0
     for self.__mmm in sorted(self.__localDataBaseLine1_list):  ## loop through the diCounters in a module
-      if(self.__cmjDebug > 3) : print(".... getDiCountersInModule:xxxx self.__mmm = xxx%sxxx") % (self.__mmm)
+      if(self.__cmjDebug > 3) : print((".... getDiCountersInModule:xxxx self.__mmm = xxx%sxxx") % (self.__mmm))
       if(self.__mmm == '') : continue
       self.__tempElement = []
       self.__tempElement = self.__mmm.rsplit(',')
@@ -672,125 +676,125 @@ class multiWindow(Frame):
       self.__moduleDiCounterId_dict[self.__tempLayer][self.__tempPosition] = self.__tempElement[0]
       self.__fetchCondition2 = 'di_counter_id:eq:'+self.__tempDiCounter  ## works!!!
       for n in range(0,self.__maxTries):
-	try:
-	  self.__localDataBaseLine2_list = self.__getCmbSmbValues.query(self.__database,self.__table2,self.__fetchThese2,self.__fetchCondition2,'-'+self.__fetchThese2)
-	  sleep(self.__sleepTime)  ## give time for database to answer)
-	  break  ## exit loop
-	except:
-	  print(".... getDiCountersInModule: ****************** Database Query Error ***********************\n")
-	  print(".... getDiCountersInModule: self.__localDataBaseLine2_list = self.__getCmbSmbValues.query\n")
-	  print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2)
-	  print (".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2)
-	  print (".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2)
-	  print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-	  print (".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list)
-	  print (".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter)
-	  if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
+        try:
+          self.__localDataBaseLine2_list = self.__getCmbSmbValues.query(self.__database,self.__table2,self.__fetchThese2,self.__fetchCondition2,'-'+self.__fetchThese2)
+          sleep(self.__sleepTime)  ## give time for database to answer)
+          break  ## exit loop
+        except:
+          print(".... getDiCountersInModule: ****************** Database Query Error ***********************\n")
+          print(".... getDiCountersInModule: self.__localDataBaseLine2_list = self.__getCmbSmbValues.query\n")
+          print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2))
+          print((".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2))
+          print((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
+          print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+          print((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
+          print((".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter))
+          if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
       xx = self.__progressBarCount.get()  ## get the current value for the progress bar
       self.__progressBarCount.set(xx+10)  ## increment the counter for the progress bar
       self.update() ## update the progress bar
       if(self.__cmjDebug > 3):
-	print (".... getDiCountersInModule: --------------------------------------------------- \n")
-	print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2)
-	print (".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2)
-	print (".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2)
-	print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-	print (".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list)
+        print (".... getDiCountersInModule: --------------------------------------------------- \n")
+        print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2))
+        print((".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2))
+        print((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
+        print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+        print((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
       for self.__nnn in sorted(self.__localDataBaseLine2_list):
-	self.__tempElement2 = []
-	if(self.__nnn == '') : continue
-	self.__tempElement2 = self.__nnn.rsplit(',')
-	self.__tempCmbId = self.__tempElement2[1][7:len(self.__tempElement2[1])]
-	self.__tempSmbId = self.__tempElement2[2][7:len(self.__tempElement2[1])]
-	self.__tempDiCounterEnd = self.__tempElement2[3]
-	if(self.__tempDiCounterEnd == 'top'):
-	  self.__moduleCmb_top_dict[self.__tempLayer][self.__tempPosition] = self.__tempCmbId
-	  self.__moduleSmb_top_dict[self.__tempLayer][self.__tempPosition] = self.__tempSmbId
-	  self.__fetchCondition3 = 'cmb_id:eq:CrvCmb-'+self.__tempCmbId
-	  for n in range(0,self.__maxTries):
-	    try:
-	      self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
-	      sleep(self.__sleepTime)  ## give time for database to answer
-	      break
-	    except:
-	      print (".... getDiCountersInModule: ****************** Database Query Error *********************** \n")
-	      print (".... getDiCountersInModule:self.__localDataBaseLine3_list = self.__getCmbSmbValues.query -- Side A -- \n") 
-	      print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-	      print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-	      print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-	      print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-	      print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-	      print (".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId)
-	      print (".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId)
-	      print (".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter)
-	      if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
-	  xx = self.__progressBarCount.get()  ## get the current value of the progress bar counter  
-	  self.__progressBarCount.set(xx+10)  ## increment the progress bar counter
-	  self.update()  ## update the progress bar
-	  self.__tempElement3 = []
-	  for self.__ppp in sorted(self.__localDataBaseLine3_list):  ## loop over the Sipms in a diCounter
-	    if(self.__ppp == '') : continue
-	    self.__tempElement3 = self.__ppp.rsplit(',')
-	    self.__tempSipmPosition = self.__tempElement3[1]
-	    self.__tempSipmId = self.__tempElement3[2]
-	    self.__tempSipmSignoff = self.__tempElement3[3]
-	    self.__moduleSipmSignOff_dict[self.__tempSipmId[20:len(self.__tempSipmId)]] = self.__tempSipmSignoff
-	    if(self.__cmjDebug > 3): 
-	      print (".... getDiCountersInModule: ............................................  \n")
-	      print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-	      print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-	      print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-	      print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-	      print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-	      print (".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3)
-	      print (".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId)
-	      print (".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId)
-	    self.__moduleSipmId_top_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
-	elif(self.__tempDiCounterEnd == 'bottom'):
-	  self.__moduleCmb_bot_dict[self.__tempLayer][self.__tempPosition] = self.__tempCmbId
-	  self.__moduleSmb_bot_dict[self.__tempLayer][self.__tempPosition] = self.__tempSmbId
-	  self.__fetchCondition3 = 'cmb_id:eq:CrvCmb-'+self.__tempCmbId
-	  for n in range(0,self.__maxTries):
-	    try:
-	      self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
-	      sleep(self.__sleepTime)  ## give time for database to answer
-	      break
-	    except:
-	      print (".... getDiCountersInModule: ****************** Database Query Error *********************** \n")
-	      print (".... getDiCountersInModule: self.__localDataBaseLine3_list = self.__getCmbSmbValues.query -- Side B -- \n")
-	      print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-	      print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-	      print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-	      print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-	      print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-	      print (".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter)
-	      print (".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId)
-	      print (".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId)
-	      if(n == self.__maxTries-1) :print(".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries)
-	  xx = self.__progressBarCount.get()  ## get the current value of the progress bar counter
-	  self.__progressBarCount.set(xx+10)  ## increment the progres bar
-	  self.update()  ## update the progresss bar
-	  self.__tempElement3 = []
-	  for self.__ppp in sorted(self.__localDataBaseLine3_list):  ## loop over the Sipms in a diCounter
-	    if(self.__ppp == '') : continue
-	    self.__tempElement3 = self.__ppp.rsplit(',')
-	    self.__tempSipmPosition = self.__tempElement3[1]
-	    self.__tempSipmId = self.__tempElement3[2]
-	    self.__tempSipmSignoff = self.__tempElement3[3]
-	    self.__moduleSipmSignOff_dict[self.__tempSipmId[20:len(self.__tempSipmId)]] = self.__tempSipmSignoff
-	    if(self.__cmjDebug > 3): 
-	      print (".... getDiCountersInModule: ............................................  \n")
-	      print (".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3)
-	      print (".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3)
-	      print (".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3)
-	      print (".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list)
-	      print (".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition)
-	      print (".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3)
-	      print (".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId)
-	      print (".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId)
-	    self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
-	    if (self.__cmjDebug > 3) : print(".... getDiCountersInModule:  self.__moduleSipmId_bot_nest_dict[%s][%s][%s] = %s") % (self.__tempLayer,self.__tempPosition,self.__tempSipmPosition,self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition])
-    if(self.__cmjDebug > 2) : print(".... getDiCountersInModule:  self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection)
+        self.__tempElement2 = []
+        if(self.__nnn == '') : continue
+        self.__tempElement2 = self.__nnn.rsplit(',')
+        self.__tempCmbId = self.__tempElement2[1][7:len(self.__tempElement2[1])]
+        self.__tempSmbId = self.__tempElement2[2][7:len(self.__tempElement2[1])]
+        self.__tempDiCounterEnd = self.__tempElement2[3]
+        if(self.__tempDiCounterEnd == 'top'):
+          self.__moduleCmb_top_dict[self.__tempLayer][self.__tempPosition] = self.__tempCmbId
+          self.__moduleSmb_top_dict[self.__tempLayer][self.__tempPosition] = self.__tempSmbId
+          self.__fetchCondition3 = 'cmb_id:eq:CrvCmb-'+self.__tempCmbId
+          for n in range(0,self.__maxTries):
+            try:
+              self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
+              sleep(self.__sleepTime)  ## give time for database to answer
+              break
+            except:
+              print (".... getDiCountersInModule: ****************** Database Query Error *********************** \n")
+              print (".... getDiCountersInModule:self.__localDataBaseLine3_list = self.__getCmbSmbValues.query -- Side A -- \n") 
+              print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+              print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+              print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+              print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+              print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+              print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+              print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+              print((".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter))
+              if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
+          xx = self.__progressBarCount.get()  ## get the current value of the progress bar counter  
+          self.__progressBarCount.set(xx+10)  ## increment the progress bar counter
+          self.update()  ## update the progress bar
+          self.__tempElement3 = []
+          for self.__ppp in sorted(self.__localDataBaseLine3_list):  ## loop over the Sipms in a diCounter
+            if(self.__ppp == '') : continue
+            self.__tempElement3 = self.__ppp.rsplit(',')
+            self.__tempSipmPosition = self.__tempElement3[1]
+            self.__tempSipmId = self.__tempElement3[2]
+            self.__tempSipmSignoff = self.__tempElement3[3]
+            self.__moduleSipmSignOff_dict[self.__tempSipmId[20:len(self.__tempSipmId)]] = self.__tempSipmSignoff
+            if(self.__cmjDebug > 3): 
+              print (".... getDiCountersInModule: ............................................  \n")
+              print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+              print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+              print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+              print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+              print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+              print((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
+              print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+              print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            self.__moduleSipmId_top_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
+        elif(self.__tempDiCounterEnd == 'bottom'):
+          self.__moduleCmb_bot_dict[self.__tempLayer][self.__tempPosition] = self.__tempCmbId
+          self.__moduleSmb_bot_dict[self.__tempLayer][self.__tempPosition] = self.__tempSmbId
+          self.__fetchCondition3 = 'cmb_id:eq:CrvCmb-'+self.__tempCmbId
+          for n in range(0,self.__maxTries):
+            try:
+              self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
+              sleep(self.__sleepTime)  ## give time for database to answer
+              break
+            except:
+              print (".... getDiCountersInModule: ****************** Database Query Error *********************** \n")
+              print (".... getDiCountersInModule: self.__localDataBaseLine3_list = self.__getCmbSmbValues.query -- Side B -- \n")
+              print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+              print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+              print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+              print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+              print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+              print((".... getDiCountersInModule: self__tempDiCounter = %s\n") % (self.__tempDiCounter))
+              print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+              print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+              if(n == self.__maxTries-1) :print((".... getDiCountersInModule: ***** Database Read Error Error ********** n > self.__maxTries = %s \n") % (self.__maxTries))
+          xx = self.__progressBarCount.get()  ## get the current value of the progress bar counter
+          self.__progressBarCount.set(xx+10)  ## increment the progres bar
+          self.update()  ## update the progresss bar
+          self.__tempElement3 = []
+          for self.__ppp in sorted(self.__localDataBaseLine3_list):  ## loop over the Sipms in a diCounter
+            if(self.__ppp == '') : continue
+            self.__tempElement3 = self.__ppp.rsplit(',')
+            self.__tempSipmPosition = self.__tempElement3[1]
+            self.__tempSipmId = self.__tempElement3[2]
+            self.__tempSipmSignoff = self.__tempElement3[3]
+            self.__moduleSipmSignOff_dict[self.__tempSipmId[20:len(self.__tempSipmId)]] = self.__tempSipmSignoff
+            if(self.__cmjDebug > 3): 
+              print (".... getDiCountersInModule: ............................................  \n")
+              print((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+              print((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+              print((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+              print((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+              print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+              print((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
+              print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+              print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
+            if (self.__cmjDebug > 3) : print((".... getDiCountersInModule:  self.__moduleSipmId_bot_nest_dict[%s][%s][%s] = %s") % (self.__tempLayer,self.__tempPosition,self.__tempSipmPosition,self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition]))
+    if(self.__cmjDebug > 2) : print((".... getDiCountersInModule:  self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection))
     self.setStatusGrid2(self.__ModuleSideselection)  ## Diplay the grid 
     return self.__localDiCounterValues_list
 ##
@@ -806,7 +810,7 @@ if __name__ == '__main__':
   parser.add_option('--database',dest='database',type='string',default="production",help='development or production')
   ##
   options, args = parser.parse_args()
-  print("'__main__': options.database  = %s \n") % (options.database)
+  print(("'__main__': options.database  = %s \n") % (options.database))
   root = Tk()              # or Toplevel()
   bannerText = 'Mu2e::'+ProgramName
   root.title(bannerText)  

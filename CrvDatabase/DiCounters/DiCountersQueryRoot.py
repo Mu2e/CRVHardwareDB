@@ -29,12 +29,18 @@
 ##  Modified by cmj2018Jul26... Initialize bytearry strings with each event in root tree
 ##  Modified by cmj2018Apr27... Change to hdbClient_v2_0
 ##  Modified by cmj2018Oct4.... Change the crvUtilities to contain version of cmjGuiLibGrid2018Oct1 that adds
-##				yellow highlight to selected scrolled list items
+##                        yellow highlight to selected scrolled list items
 ##  Modified by cmj2018Oct11.... Change to hdbClient_v2_2
 ##  Modified by cmj2020Jul08... Change to cmjGuiLibGrid2019Jan30
 ##  Modified by cmj2020Jul09... Change crvUtilities2018 -> crvUtilities;
 ##  Modified by cmj2020Aug03...  cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
+##  Modified by cmj2021Jan22... save character strings in the root trees
+##  Modified by cmj2022Jan22... add debug level button to GUI
+##  Modified by cmj2022Jan22... make production database default
 ##
 ##   Merrill Jenkins
 ##   Department of Physics
@@ -48,9 +54,9 @@
 ##
 sendDataBase = 0  ## zero... don't send to database
 #
-from Tkinter import *         # get widget class
-import Tkinter as tk
-import tkFileDialog
+from tkinter import *         # get widget class
+import tkinter as tk
+import tkinter.filedialog
 import os
 import sys        ## 
 import optparse   ## parser module... to parse the command line arguments
@@ -65,22 +71,23 @@ from databaseConfig import *
 from cmjGuiLibGrid import *       ## 2020Aug03
 from DiCounters import *
 ##  Import for PyRoot
+import ROOT as _root  ## import to define vectors which are used to save strings
 from ROOT import TCanvas, TFile, TProfile, TNtuple, TH1F, TH2F, TGraph, TStyle, TTree, TString, TDirectory
-from ROOT import gROOT, gBenchmark, gRandom, gSystem, gStyle, Double, string, vector
+from ROOT import gROOT, gBenchmark, gRandom, gSystem, gStyle, Double_t, string, vector
 from array import array
 ProgramName = "DiCountersRootQuerry.py"
-Version = "version2020.12.16"
+Version = "version2022.01.21"
+initialDebug = 0 #default Debug
 ##
 ##
 ## -------------------------------------------------------------
-## 	A class to interogate the di-counters in the database
-##	then product the root tree in the root file!
+##       A class to interogate the di-counters in the database
+##      then product the root tree in the root file!
 ##
 class askDiCounter(object):
   def __init__(self):
-    self.__cmjProgramFlow = 0
-    if(self.__cmjProgramFlow != 0): print("askDiCounter__init__askDiCounter... enter \n")
-    self.__cmjPlotDiag = 0
+    self.__cmjDebug = initialDebug
+    if(self.__cmjDebug != 0): print("askDiCounter__init__askDiCounter... enter \n")
     self.__database_config  = databaseConfig()
 ##  Set the stastitics box
     gStyle.SetOptStat("nemruoi")
@@ -89,27 +96,27 @@ class askDiCounter(object):
     self.__diCounterSipmLocation = {'A1':'A1','A2':'A2','A3':'A3','A4':'A4','B1':'B1','B2':'B2','B3':'B3','B4':'B4'}
     self.__diCounterSipms = ['A1','A2','A3','A4','B1','B2','B3','B4']
     ## Dictionaries to hold the di-counter test results
-    self.__diCounterId = {}	## key diCounterId+diCounterDate
-    self.__diCounterTestDate = {}	## key diCounterId+diCounterDate
-    self.__diCounterLightSource = {}	## key diCounterId+diCounterDate
-    self.__diCounterFlashRate = {}	## key diCounterId+diCounterDate
-    self.__diCounterVoltage = {}	## key diCounterId+diCounterDate
-    self.__diCounterTemperature = {}	## key diCounterId+diCounterDate
-    self.__diCounterLightSourceVector = {}	## key diCounterId+diCounterDate
-    self.__diCounterLightSourceDistance = {}	## key diCounterId+diCounterDate
-    self.__diCounterComment = {}		## key diCounterId+diCounterDate
-    self.__diCounterCurrentA1 = {}; self.__diCounterCurrentA2 = {};	## key diCounterId+diCounterDate 
-    self.__diCounterCurrentA3 = {}; self.__diCounterCurrentA4 = {};	## key diCounterId+diCounterDate
-    self.__diCounterCurrentB1 = {}; self.__diCounterCurrentB2 = {};	## key diCounterId+diCounterDate 
-    self.__diCounterCurrentB3 = {}; self.__diCounterCurrentB4 = {};	## key diCounterId+diCounterDate
-    self.__diCounterCurrentS1 = {}; self.__diCounterCurrentS2 = {};	## key diCounterId+diCounterDate 
-    self.__diCounterCurrentS3 = {}; self.__diCounterCurrentS4 = {};	## key diCounterId+diCounterDate
-    self.__diCounterDarkCurrentA1 = {}; self.__diCounterDarkCurrentA2 = {};	## key diCounterId+diCounterDate 
-    self.__diCounterDarkCurrentA3 = {}; self.__diCounterDarkCurrentA4 = {};	## key diCounterId+diCounterDate
-    self.__diCounterDarkCurrentB1 = {}; self.__diCounterDarkCurrentB2 = {};	## key diCounterId+diCounterDate 
-    self.__diCounterDarkCurrentB3 = {}; self.__diCounterDarkCurrentB4 = {};	## key diCounterId+diCounterDate
-    self.__diCounterDarkCurrentS1 = {}; self.__diCounterDarkCurrentS2 = {};	## key diCounterId+diCounterDate 
-    self.__diCounterDarkCurrentS3 = {}; self.__diCounterDarkCurrentS4 = {};	## key diCounterId+diCounterDate
+    self.__diCounterId = {}      ## key diCounterId+diCounterDate
+    self.__diCounterTestDate = {}      ## key diCounterId+diCounterDate
+    self.__diCounterLightSource = {}      ## key diCounterId+diCounterDate
+    self.__diCounterFlashRate = {}      ## key diCounterId+diCounterDate
+    self.__diCounterVoltage = {}      ## key diCounterId+diCounterDate
+    self.__diCounterTemperature = {}      ## key diCounterId+diCounterDate
+    self.__diCounterLightSourceVector = {}      ## key diCounterId+diCounterDate
+    self.__diCounterLightSourceDistance = {}      ## key diCounterId+diCounterDate
+    self.__diCounterComment = {}            ## key diCounterId+diCounterDate
+    self.__diCounterCurrentA1 = {}; self.__diCounterCurrentA2 = {};      ## key diCounterId+diCounterDate 
+    self.__diCounterCurrentA3 = {}; self.__diCounterCurrentA4 = {};      ## key diCounterId+diCounterDate
+    self.__diCounterCurrentB1 = {}; self.__diCounterCurrentB2 = {};      ## key diCounterId+diCounterDate 
+    self.__diCounterCurrentB3 = {}; self.__diCounterCurrentB4 = {};      ## key diCounterId+diCounterDate
+    self.__diCounterCurrentS1 = {}; self.__diCounterCurrentS2 = {};      ## key diCounterId+diCounterDate 
+    self.__diCounterCurrentS3 = {}; self.__diCounterCurrentS4 = {};      ## key diCounterId+diCounterDate
+    self.__diCounterDarkCurrentA1 = {}; self.__diCounterDarkCurrentA2 = {};      ## key diCounterId+diCounterDate 
+    self.__diCounterDarkCurrentA3 = {}; self.__diCounterDarkCurrentA4 = {};      ## key diCounterId+diCounterDate
+    self.__diCounterDarkCurrentB1 = {}; self.__diCounterDarkCurrentB2 = {};      ## key diCounterId+diCounterDate 
+    self.__diCounterDarkCurrentB3 = {}; self.__diCounterDarkCurrentB4 = {};      ## key diCounterId+diCounterDate
+    self.__diCounterDarkCurrentS1 = {}; self.__diCounterDarkCurrentS2 = {};      ## key diCounterId+diCounterDate 
+    self.__diCounterDarkCurrentS3 = {}; self.__diCounterDarkCurrentS4 = {};      ## key diCounterId+diCounterDate
 ##  for the root tree...
     ## arrays needed to build root tree....
     self.__signalDiCounterId = {}
@@ -131,65 +138,65 @@ class askDiCounter(object):
     self.__darkCurrentB1 = {}; self.__darkCurrentB2 = {}; self.__darkCurrentB3 = {}; self.__darkCurrentB4 = {}
 ## -------------------------------------------------------------
   def __del__(self):
-    if(self.__cmjProgramFlow != 0) : print("askDiCounter__del__askDiCounter... enter \n") 
+    if(self.__cmjDebug != 0) : print("askDiCounter__del__askDiCounter... enter \n") 
 ## -------------------------------------------------------------
   def turnOnDebug(self,temp):
-    self.__cmjPlotDiag = temp
-    self.__cmjProgramFlow = temp
-    print("__askDiCounter__turnOnDebug... cmjPlotDiag debug level =  %s \n") % (self.__cmjPlotDiag)
-    print("__askDiCounter__turnOnDebug... cmjProgramFlow debug level =  %s \n") % (self.__cmjProgramFlow)
+    self.__cmjDebug = temp
+    self.__cmjDebug = temp
+    print(("__askDiCounter__turnOnDebug... cmjPlotDiag debug level =  %s \n") % (self.__cmjDebug))
 ## -------------------------------------------------------------
-##	Make queries to data base
-##	Set up queries to the development database
+##      Make queries to data base
+##      Set up queries to the development database
   def setupDevelopmentDatabase(self):
     self.__database = 'mu2e_hardware_dev'
     self.__group = "Composite Tables"
     self.__whichDatabase = 'development'
-    if(self.__cmjPlotDiag != 0): print("__askDicounter__getFromDevelopmentDatabase... get to development database \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__getFromDevelopmentDatabase... get to development database \n")
     self.__queryUrl = self.__database_config.getQueryUrl()
-    if(self.__cmjPlotDiag > 2) : 
-      print("__askDiCounter__getFromDevelopmentDatabase... self.__database = %s \n") % (self.__database)
-      print("__askDiCounter__getFromDevelopmentDatabase... self._queryUrl = %s \n") %(self.__queryUrl)
+    if(self.__cmjDebug > 2) : 
+      print(("__askDiCounter__getFromDevelopmentDatabase... self.__database = %s \n") % (self.__database))
+      if(self.__cmjDebug > 5) : print(("__askDiCounter__getFromDevelopmentDatabase... self._queryUrl = %s \n") %(self.__queryUrl))
+##
 ## -------------------------------------------------------------
-##	Make queries to the database
-##	Setup queries to the production database
+##      Make queries to the database
+##      Setup queries to the production database
   def setupProductionDatabase(self):
     self.__database = 'mu2e_hardware_prd'
     self.__group = "Composite Tables"
     self.__whichDatabase = 'production'
-    if(self.__cmjPlotDiag != 0): print("__askDicounter__getFromProductionDatabase... get to production database \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__getFromProductionDatabase... get to production database \n")
     self.__queryUrl = self.__database_config.getProductionQueryUrl()
-    if(self.__cmjPlotDiag > 2) : 
-      print("__askDiCounter__getFromProductionDatabase... self.__database = %s \n") % (self.__database)
-      print("__askDicounter__getFromProductionDatabase... self._queryUrl = %s \n") %(self.__queryUrl)
+    if(self.__cmjDebug > 2) : 
+      print(("__askDiCounter__getFromProductionDatabase... self.__database = %s \n") % (self.__database))
+      if(self.__cmjDebug > 5) : print(("__askDicounter__getFromProductionDatabase... self._queryUrl = %s \n") %(self.__queryUrl))
 ## -------------------------------------------------------------
 ##  Ask the database for the di-counter information here!
   def loadDiCounterRequest(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__loadDiCounterRequest... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__loadDiCounterRequest... enter \n")
     self.__tempResults = self.getDiCounterFromDatabase()
     self.loadDiCounterInformation(self.__tempResults)
 ## -------------------------------------------------------------
   def getDiCounterFromDatabase(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__getDiCounterFromDatabase... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__getDiCounterFromDatabase... enter \n")
     self.__getDiCounterValues = DataQuery(self.__queryUrl)
     self.__diCounterResults = []
     self.__table = "di_counter_tests"
     self.__fetchThese = "di_counter_id,test_date,sipm_location,current_amps,light_source,flash_rate_hz,temperature,distance,distance_vector,sipm_test_voltage,comments"
     self.__fetchCondition = "test_date:gt:2017-01-01"
     self.__numberReturned = 0
-    if(self.__cmjPlotDiag > 0):
-      print (".... getSipmsBatchesFromDatabase: self.__queryUrl   = %s \n") % (self.__queryUrl)
-      print (".... getSipmsBatchesFromDatabase: self.__table                = %s \n") % (self.__table)
-      print (".... getSipmsBatchesFromDatabase: self.__fetchThese           = %s \n") % (self.__fetchThese)
+    if(self.__cmjDebug > 0):
+      print((".... getSipmsBatchesFromDatabase: self.__queryUrl   = %s \n") % (self.__queryUrl))
+      print((".... getSipmsBatchesFromDatabase: self.__table                = %s \n") % (self.__table))
+      print((".... getSipmsBatchesFromDatabase: self.__fetchThese           = %s \n") % (self.__fetchThese))
     self.__diCounterResults = self.__getDiCounterValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
-    if(self.__cmjPlotDiag > 4): print ("__askDicounter__getDiCounterFromDatabase... self.__diCounterResults = %s \n") % (self.__diCounterResults)
-    if(self.__cmjPlotDiag > 5):
+    if(self.__cmjDebug > 4): print(("__askDicounter__getDiCounterFromDatabase... self.__diCounterResults = %s \n") % (self.__diCounterResults))
+    if(self.__cmjDebug > 5):
       for self.__l in self.__diCounterResults:
-	print self.__l
+        print(self.__l)
     return self.__diCounterResults  
 ## -------------------------------------------------------------
   def loadDiCounterInformation(self,tempResults):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__getDiCounterFromDatabase... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__getDiCounterFromDatabase... enter \n")
     for self.__tempLine in tempResults:
       self.__item = []
       self.__item = self.__tempLine.rsplit(",")
@@ -214,67 +221,67 @@ class askDiCounter(object):
       self.__diCounterVoltage[self.__localKey] = self.__SipmVoltage
       self.__diCounterTemperature[self.__localKey] = self.__Temperature
       if(not self.__LightDistance) :  ## null string
-	self.__diCounterLightSourceDistance[self.__localKey] = -9999.99
+        self.__diCounterLightSourceDistance[self.__localKey] = -9999.99
       else:
-	self.__diCounterLightSourceDistance[self.__localKey] = float(self.__LightDistance)
+        self.__diCounterLightSourceDistance[self.__localKey] = float(self.__LightDistance)
       if(not self.__LightPosition):  ##  null string
-	self.__diCounterLightSourceVector[self.__localKey] = 'None Given'
+        self.__diCounterLightSourceVector[self.__localKey] = 'None Given'
       else:
-	self.__diCounterLightSourceVector[self.__localKey] = self.__LightPosition
+        self.__diCounterLightSourceVector[self.__localKey] = self.__LightPosition
       if(not self.__DiCounterTestComment):  ## null stringa
-	self.__diCounterComment[self.__localKey] = 'None Given'
+        self.__diCounterComment[self.__localKey] = 'None Given'
       else:
-	self.__diCounterComment[self.__localKey] = self.__DiCounterTestComment
+        self.__diCounterComment[self.__localKey] = self.__DiCounterTestComment
       ## for convienince sort current values according to positon on the di-counter!
       #if(self.__LightSource == 'rad' or self.__LightSource == '1mCi Cs^137' or self.__LightSource == 'led' or self.__LightSource == 'cos'):
       if(self.__LightSource != 'dark'):
-	if(self.__SipmPosition == 'a1') : self.__diCounterCurrentA1[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'a2') : self.__diCounterCurrentA2[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'a3') : self.__diCounterCurrentA3[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'a4') : self.__diCounterCurrentA4[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b1') : self.__diCounterCurrentB1[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b2') : self.__diCounterCurrentB2[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b3') : self.__diCounterCurrentB3[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b4') : self.__diCounterCurrentB4[self.__localKey] = float(self.__item[3])
-	  
+        if(self.__SipmPosition == 'a1') : self.__diCounterCurrentA1[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'a2') : self.__diCounterCurrentA2[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'a3') : self.__diCounterCurrentA3[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'a4') : self.__diCounterCurrentA4[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b1') : self.__diCounterCurrentB1[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b2') : self.__diCounterCurrentB2[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b3') : self.__diCounterCurrentB3[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b4') : self.__diCounterCurrentB4[self.__localKey] = float(self.__item[3])
+      #  
       if(self.__LightSource == 'dark'):
-	if(self.__SipmPosition == 'a1') : self.__diCounterDarkCurrentA1[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'a2') : self.__diCounterDarkCurrentA2[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'a3') : self.__diCounterDarkCurrentA3[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'a4') : self.__diCounterDarkCurrentA4[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b1') : self.__diCounterDarkCurrentB1[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b2') : self.__diCounterDarkCurrentB2[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b3') : self.__diCounterDarkCurrentB3[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 'b4') : self.__diCounterDarkCurrentB4[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'a1') : self.__diCounterDarkCurrentA1[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'a2') : self.__diCounterDarkCurrentA2[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'a3') : self.__diCounterDarkCurrentA3[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'a4') : self.__diCounterDarkCurrentA4[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b1') : self.__diCounterDarkCurrentB1[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b2') : self.__diCounterDarkCurrentB2[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b3') : self.__diCounterDarkCurrentB3[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 'b4') : self.__diCounterDarkCurrentB4[self.__localKey] = float(self.__item[3])
       if(self.__LightSource == 'crystal_rad'):
-	if(self.__SipmPosition == "s1") : self.__diCounterCurrentS1[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == "s2") : self.__diCounterCurrentS2[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == "s3") : self.__diCounterCurrentS3[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == "s4") : self.__diCounterCurrentS4[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == "s1") : self.__diCounterCurrentS1[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == "s2") : self.__diCounterCurrentS2[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == "s3") : self.__diCounterCurrentS3[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == "s4") : self.__diCounterCurrentS4[self.__localKey] = float(self.__item[3])
       if(self.__LightSource == 'crystal_dark'):
-	if(self.__SipmPosition == 's1') : self.__diCounterDarkCurrentS1[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 's2') : self.__diCounterDarkCurrentS2[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 's3') : self.__diCounterDarkCurrentS3[self.__localKey] = float(self.__item[3])
-	if(self.__SipmPosition == 's4') : self.__diCounterDarkCurrentS4[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 's1') : self.__diCounterDarkCurrentS1[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 's2') : self.__diCounterDarkCurrentS2[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 's3') : self.__diCounterDarkCurrentS3[self.__localKey] = float(self.__item[3])
+        if(self.__SipmPosition == 's4') : self.__diCounterDarkCurrentS4[self.__localKey] = float(self.__item[3])
     
   
 ## -------------------------------------------------------------
   def getScatterPlots(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__getScatterPlots... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__getScatterPlots... enter \n")
     self.plotScatterPlots(self)
 ## -------------------------------------------------------------
   def getHistograms(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__getHistograms... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__getHistograms... enter \n")
     self.bookHistograms()     
     self.fillHistograms(self.__diCounterResults)
     self.drawCanvas()
     self.defineTree()
 ## -------------------------------------------------------------
   def plotScatterPlots(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__plotScatterPlots... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__plotScatterPlots... enter \n")
 ## -------------------------------------------------------------
   def bookHistograms(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__bookHistograms... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__bookHistograms... enter \n")
     self.__nBins = 100; self.__lowBin = 0.0; self.__hiBin = 2.0e4
     ##  All Signal Sources
     self.__allSourceCurrentColor = 9
@@ -373,138 +380,138 @@ class askDiCounter(object):
 
 ## -------------------------------------------------------------
   def fillHistograms(self,tempResults):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__fillHistograms... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__fillHistograms... enter \n")
     self.__numberOfSignal  = 0
     self.__numberOfDark = 0
-    for self.__event in self.__diCounterId.keys():
+    for self.__event in list(self.__diCounterId.keys()):
       self.__localLightSource = self.__diCounterLightSource[self.__event]
       if(self.__localLightSource ==  'rad' or self.__localLightSource == 'led' or self.__localLightSource == 'cos'):
-	try:
-	  self.__hSipmA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentA1[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentA2[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentA3[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentA4[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentB1[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentB2[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentB3[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterCurrentB4[%s] is MISSING!") % self.__event
+        try:
+         self.__hSipmA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentA1[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentA2[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentA3[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentA4[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentB1[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentB2[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentB3[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterCurrentB4[%s] is MISSING!") % self.__event)
       if(self.__localLightSource == 'dark'):
-	try:
-	  self.__hSipmDarkA1.Fill(float(self.__diCounterDarkCurrentA1[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentA1[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmDarkA2.Fill(float(self.__diCounterDarkCurrentA2[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentA2[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmDarkA3.Fill(float(self.__diCounterDarkCurrentA3[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentA3[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmDarkA4.Fill(float(self.__diCounterDarkCurrentA4[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentA4[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmDarkB1.Fill(float(self.__diCounterDarkCurrentB1[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentB1[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmDarkB2.Fill(float(self.__diCounterDarkCurrentB2[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentB2[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmDarkB3.Fill(float(self.__diCounterDarkCurrentB3[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentB3[%s] is MISSING!") % self.__event
-	try:
-	  self.__hSipmDarkB4.Fill(float(self.__diCounterDarkCurrentB4[self.__event]))
-	except:
-	  print("__askDicounter__fillHistograms... diCounterDarkCurrentB4[%s] is MISSING!") % self.__event
-	## the lists have been tested and warnings issued!
+        try:
+          self.__hSipmDarkA1.Fill(float(self.__diCounterDarkCurrentA1[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentA1[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmDarkA2.Fill(float(self.__diCounterDarkCurrentA2[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentA2[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmDarkA3.Fill(float(self.__diCounterDarkCurrentA3[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentA3[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmDarkA4.Fill(float(self.__diCounterDarkCurrentA4[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentA4[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmDarkB1.Fill(float(self.__diCounterDarkCurrentB1[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentB1[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmDarkB2.Fill(float(self.__diCounterDarkCurrentB2[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentB2[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmDarkB3.Fill(float(self.__diCounterDarkCurrentB3[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentB3[%s] is MISSING!") % self.__event)
+        try:
+          self.__hSipmDarkB4.Fill(float(self.__diCounterDarkCurrentB4[self.__event]))
+        except:
+          print(("__askDicounter__fillHistograms... diCounterDarkCurrentB4[%s] is MISSING!") % self.__event)
+      ## the lists have been tested and warnings issued!
       if(self.__localLightSource ==  'led'):
-	try: self.__hSipmLedA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
-	except: continue
-	try: self.__hSipmLedA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
-	except: continue
-	try: self.__hSipmLedA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
-	except: continue
-	try: self.__hSipmLedA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
-	except: continue
-	try: self.__hSipmLedB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
-	except: continue
-	try: self.__hSipmLedB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
-	except: continue
-	try: self.__hSipmLedB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
-	except: continue
-	try: self.__hSipmLedB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
-	except: continue
+        try: self.__hSipmLedA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
+        except: continue
+        try: self.__hSipmLedA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
+        except: continue
+        try: self.__hSipmLedA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
+        except: continue
+        try: self.__hSipmLedA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
+        except: continue
+        try: self.__hSipmLedB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
+        except: continue
+        try: self.__hSipmLedB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
+        except: continue
+        try: self.__hSipmLedB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
+        except: continue
+        try: self.__hSipmLedB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
+        except: continue
       if(self.__localLightSource ==  'rad'):
-	try: self.__hSipmSourceA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
-	except: continue
-	try: self.__hSipmSourceA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
-	except: continue
-	try: self.__hSipmSourceA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
-	except: continue
-	try: self.__hSipmSourceA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
-	except: continue
-	try: self.__hSipmSourceB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
-	except: continue
-	try: self.__hSipmSourceB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
-	except: continue
-	try: self.__hSipmSourceB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
-	except: continue
-	try: self.__hSipmSourceB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
-	except: continue
+        try: self.__hSipmSourceA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
+        except: continue
+        try: self.__hSipmSourceA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
+        except: continue
+        try: self.__hSipmSourceA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
+        except: continue
+        try: self.__hSipmSourceA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
+        except: continue
+        try: self.__hSipmSourceB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
+        except: continue
+        try: self.__hSipmSourceB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
+        except: continue
+        try: self.__hSipmSourceB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
+        except: continue
+        try: self.__hSipmSourceB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
+        except: continue
       if(self.__localLightSource ==  'source'):
-	try: self.__hSipmCosmicA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
-	except: continue
-	try: self.__hSipmCosmicA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
-	except: continue
-	try: self.__hSipmCosmicA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
-	except: continue
-	try: self.__hSipmCosmicA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
-	except: continue
-	try: self.__hSipmCosmicB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
-	except: continue
-	try: self.__hSipmCosmicB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
-	except: continue
-	try: self.__hSipmCosmicB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
-	except: continue
-	try: self.__hSipmCosmicB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
-	except: continue
+        try: self.__hSipmCosmicA1.Fill(float(self.__diCounterCurrentA1[self.__event]))
+        except: continue
+        try: self.__hSipmCosmicA2.Fill(float(self.__diCounterCurrentA2[self.__event]))
+        except: continue
+        try: self.__hSipmCosmicA3.Fill(float(self.__diCounterCurrentA3[self.__event]))
+        except: continue
+        try: self.__hSipmCosmicA4.Fill(float(self.__diCounterCurrentA4[self.__event]))
+        except: continue
+        try: self.__hSipmCosmicB1.Fill(float(self.__diCounterCurrentB1[self.__event]))
+        except: continue
+        try: self.__hSipmCosmicB2.Fill(float(self.__diCounterCurrentB2[self.__event]))
+        except: continue
+        try: self.__hSipmCosmicB3.Fill(float(self.__diCounterCurrentB3[self.__event]))
+        except: continue
+        try: self.__hSipmCosmicB4.Fill(float(self.__diCounterCurrentB4[self.__event]))
+        except: continue
 
 
 ## -------------------------------------------------------------
   def drawCanvas(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__drawCanvas... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__drawCanvas... enter \n")
     self.__cX = 200
     self.__cY = 10
-    self.__cWidth = 700	## canvas width
-    self.__cHeight = 500	## canvas height
+    self.__cWidth = 700      ## canvas width
+    self.__cHeight = 500      ## canvas height
     self.__delX = 20
     self.__delY = 20
     self.__windowTitle = "DiCounter Sipm Current - All Sources"
@@ -626,15 +633,15 @@ class askDiCounter(object):
     self.__c2.SaveAs(self.__outputGraphicsDirectory+"darkCurrent"+self.__saveGraphicsTime+".png")
 
 ## -------------------------------------------------------------
-##	This method defines the root tree and
-##	the file that it is saved on.
+##      This method defines the root tree and
+##      the file that it is saved on.
 ##  The root tree has two directories... one for the signal and 
 ##  one for the dark current readings...  The tree contains information
 ##  to allow the user to select sides that the source was positioned
 ##  di-counter id and the test dates.
 ##
   def defineTree(self):
-    if(self.__cmjProgramFlow != 0): print("__askDicounter__defineTree... enter \n")
+    if(self.__cmjDebug != 0): print("__askDicounter__defineTree... enter \n")
     ## Define the root tree output file
     self.__treeTime = myTime()
     self.__treeTime.getComputerTime()
@@ -647,13 +654,13 @@ class askDiCounter(object):
     #self.__rootTreeFile.cd('DiCounterSignal')
     self.__localRootTree1 = TTree('diCounterTests','root tree with ntuples')
     ## define arrays for the signal...
-    if(self.__cmjPlotDiag > 2): print("__askDicounter__defineTree... define arrays \n")
-    self.__tempDiCounterId = bytearray(30)  ## the di-counter Id
-    self.__tempTestDate = bytearray(30)
-    self.__tempLightSource=bytearray(30)
-    self.__tempFlashRate = bytearray(30)
-    self.__tempLightSourceSide = bytearray(30)
-    self.__tempComment = bytearray(120)
+    if(self.__cmjDebug > 2): print("__askDicounter__defineTree... define arrays \n")
+    self.__tempDiCounter = _root.vector('string')()
+    self.__tempTestDate = _root.vector('string')()
+    self.__tempLightSource = _root.vector('string')()
+    self.__tempFlashRate = _root.vector('string')()
+    self.__tempLightSourceSide = _root.vector('string')()
+    self.__tempComment = _root.vector('string')()
     self.__arrayCurrentA1 = array('f',[0])
     self.__arrayCurrentA2 = array('f',[0])
     self.__arrayCurrentA3 = array('f',[0])
@@ -666,13 +673,13 @@ class askDiCounter(object):
     self.__arraySignalPosition = array('f',[0])
     self.__arraySignalVoltage = array('f',[0])
     ## define branches....  for the signal
-    if(self.__cmjPlotDiag > 2): print("__askDicounter__defineTree... define branches \n")
-    self.__localRootTree1.Branch('diCounterId',self.__tempDiCounterId,'self.__tempDiCounterId[30]/C')
-    self.__localRootTree1.Branch('testDate',self.__tempTestDate,'self.__tempTestDate[30]/C')
-    self.__localRootTree1.Branch('lightSource',self.__tempLightSource,'self.__tempLightSource[30]/C')
-    self.__localRootTree1.Branch('flashRate',self.__tempFlashRate,'self.__tempFlashRate[30]/C')
-    self.__localRootTree1.Branch('lightSourceSide',self.__tempLightSourceSide,'self.__tempLightSourceSide[30]/C')
-    self.__localRootTree1.Branch('comment',self.__tempComment,'self.__comment[120]/C')
+    if(self.__cmjDebug > 2): print("__askDicounter__defineTree... define branches \n")
+    self.__localRootTree1.Branch('diCounterId',self.__tempDiCounter)
+    self.__localRootTree1.Branch('testDate',self.__tempTestDate)
+    self.__localRootTree1.Branch('lightSource',self.__tempLightSource)
+    self.__localRootTree1.Branch('flashRate',self.__tempFlashRate)
+    self.__localRootTree1.Branch('lightSourceSide',self.__tempLightSourceSide)
+    self.__localRootTree1.Branch('comment',self.__tempComment)
     self.__localRootTree1.Branch('currentA1',self.__arrayCurrentA1,'self.__arrayCurrentA1[1]/F')
     self.__localRootTree1.Branch('currentA2',self.__arrayCurrentA2,'self.__arrayCurrentA2[1]/F')
     self.__localRootTree1.Branch('currentA3',self.__arrayCurrentA3,'self.__arrayCurrentA3[1]/F')
@@ -684,177 +691,143 @@ class askDiCounter(object):
     self.__localRootTree1.Branch('temperature',self.__arraySignalTemperature,'self.__arraySignalTemperature[1]/F')
     self.__localRootTree1.Branch('light_source_position',self.__arraySignalPosition,'self.__arraySignalPosition[1]/F')
     self.__localRootTree1.Branch('sipmVoltage',self.__arraySignalVoltage,'self.__arraySignalVoltage[1]/F')
-    for self.__event in self.__diCounterId.keys():
+    for self.__event in list(self.__diCounterId.keys()):
       self.__LightSource = self.__diCounterLightSource[self.__event]
       #if(self.__LightSource == 'rad' or self.__LightSource == 'led' or self.__LightSource == 'cos'):
       if(self.__LightSource == 'rad' or self.__LightSource == "cos"):
-	try: 
-	  self.__arrayCurrentA1[0] = self.__diCounterCurrentA1[self.__event]
-	except: 
-	  self.__arrayCurrentA1[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA2[0] = self.__diCounterCurrentA2[self.__event]
-	except: 
-	  self.__arrayCurrentA2[0] = float(-9999.99)
-	try:
-	  self.__arrayCurrentA3[0] = self.__diCounterCurrentA3[self.__event]
-	except:
-	  self.__arrayCurrentA3[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA4[0] = self.__diCounterCurrentA4[self.__event]
-	except: 
-	  self.__arrayCurrentA4[0] = float(-9999.99)
-	try:
-	  self.__arrayCurrentB1[0] = self.__diCounterCurrentB1[self.__event]
-	except:
-	  self.__arrayCurrentB1[0] = float(-9999.99)
-	try:
-	  self.__arrayCurrentB2[0] = self.__diCounterCurrentB2[self.__event]
-	except: 
-	  self.__arrayCurrentB2[0] = float(-9999.99)
-	try:
-	  self.__arrayCurrentB3[0] = self.__diCounterCurrentB3[self.__event]
-	except: 
-	  self.__arrayCurrentB3[0] = float(-9999.99)
-	try:
-	  self.__arrayCurrentB4[0] = self.__diCounterCurrentB4[self.__event]
-	except: 
-	  self.__arrayCurrentB4[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA1[0] = self.__diCounterCurrentA1[self.__event]
+        except: 
+          self.__arrayCurrentA1[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA2[0] = self.__diCounterCurrentA2[self.__event]
+        except: 
+          self.__arrayCurrentA2[0] = float(-9999.99)
+        try:
+          self.__arrayCurrentA3[0] = self.__diCounterCurrentA3[self.__event]
+        except:
+          self.__arrayCurrentA3[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA4[0] = self.__diCounterCurrentA4[self.__event]
+        except: 
+          self.__arrayCurrentA4[0] = float(-9999.99)
+        try:
+          self.__arrayCurrentB1[0] = self.__diCounterCurrentB1[self.__event]
+        except:
+          self.__arrayCurrentB1[0] = float(-9999.99)
+        try:
+          self.__arrayCurrentB2[0] = self.__diCounterCurrentB2[self.__event]
+        except: 
+          self.__arrayCurrentB2[0] = float(-9999.99)
+        try:
+          self.__arrayCurrentB3[0] = self.__diCounterCurrentB3[self.__event]
+        except: 
+          self.__arrayCurrentB3[0] = float(-9999.99)
+        try:
+          self.__arrayCurrentB4[0] = self.__diCounterCurrentB4[self.__event]
+        except: 
+          self.__arrayCurrentB4[0] = float(-9999.99)
 
       if(self.__LightSource == 'crystal_rad'):
-	try: 
-	  self.__arrayCurrentA1[0] = self.__diCounterCurrentS1[self.__event]
-	except: 
-	  self.__arrayCurrentA1[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA2[0] = self.__diCounterCurrentS2[self.__event]
-	except: 
-	  self.__arrayCurrentA2[0] = float(-9999.99)
-	try:
-	  self.__arrayCurrentA3[0] = self.__diCounterCurrentS3[self.__event]
-	except:
-	  self.__arrayCurrentA3[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA4[0] = self.__diCounterCurrentS4[self.__event]
-	except: 
-	  self.__arrayCurrentA4[0] = float(-9999.99)
-	self.__arrayCurrentB1[0] = float(-9999.99) 
-	self.__arrayCurrentB2[0] = float(-9999.99) 
-	self.__arrayCurrentB3[0] = float(-9999.99)
-	self.__arrayCurrentB4[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA1[0] = self.__diCounterCurrentS1[self.__event]
+        except: 
+          self.__arrayCurrentA1[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA2[0] = self.__diCounterCurrentS2[self.__event]
+        except: 
+          self.__arrayCurrentA2[0] = float(-9999.99)
+        try:
+          self.__arrayCurrentA3[0] = self.__diCounterCurrentS3[self.__event]
+        except:
+          self.__arrayCurrentA3[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA4[0] = self.__diCounterCurrentS4[self.__event]
+        except: 
+          self.__arrayCurrentA4[0] = float(-9999.99)
+        self.__arrayCurrentB1[0] = float(-9999.99) 
+        self.__arrayCurrentB2[0] = float(-9999.99) 
+        self.__arrayCurrentB3[0] = float(-9999.99)
+        self.__arrayCurrentB4[0] = float(-9999.99)
 
       if(self.__LightSource == 'dark'):
-	try:
-	  self.__arrayCurrentA1[0] = self.__diCounterDarkCurrentA1[self.__event]
-	except:
-	  self.__arrayCurrentA1[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA2[0] = self.__diCounterDarkCurrentA2[self.__event]
-	except:
-	  self.__arrayCurrentA2[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA3[0] = self.__diCounterDarkCurrentA3[self.__event]
-	except:
-	  self.__arrayCurrentA3[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA4[0] = self.__diCounterDarkCurrentA4[self.__event]
-	except:
-	  self.__arrayCurrentA4[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentB1[0] = self.__diCounterDarkCurrentB1[self.__event]
-	except:
-	  self.__arrayCurrentB1[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentB2[0] = self.__diCounterDarkCurrentB2[self.__event]
-	except:
-	  self.__arrayCurrentB2[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentB3[0] = self.__diCounterDarkCurrentB3[self.__event]
-	except:
-	  self.__arrayCurrentB3[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentB4[0] = self.__diCounterDarkCurrentB4[self.__event]
-	except:
-	  self.__arrayCurrentB4[0] = float(-9999.99)
+        try:
+          self.__arrayCurrentA1[0] = self.__diCounterDarkCurrentA1[self.__event]
+        except:
+          self.__arrayCurrentA1[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA2[0] = self.__diCounterDarkCurrentA2[self.__event]
+        except:
+          self.__arrayCurrentA2[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA3[0] = self.__diCounterDarkCurrentA3[self.__event]
+        except:
+          self.__arrayCurrentA3[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA4[0] = self.__diCounterDarkCurrentA4[self.__event]
+        except:
+          self.__arrayCurrentA4[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentB1[0] = self.__diCounterDarkCurrentB1[self.__event]
+        except:
+          self.__arrayCurrentB1[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentB2[0] = self.__diCounterDarkCurrentB2[self.__event]
+        except:
+          self.__arrayCurrentB2[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentB3[0] = self.__diCounterDarkCurrentB3[self.__event]
+        except:
+          self.__arrayCurrentB3[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentB4[0] = self.__diCounterDarkCurrentB4[self.__event]
+        except:
+          self.__arrayCurrentB4[0] = float(-9999.99)
 
       if(self.__LightSource == 'crystal_dark'):
-	try:
-	  self.__arrayCurrentA1[0] = self.__diCounterDarkCurrentS1[self.__event]
-	except:
-	  self.__arrayCurrentA1[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA2[0] = self.__diCounterDarkCurrentS2[self.__event]
-	except:
-	  self.__arrayCurrentA2[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA3[0] = self.__diCounterDarkCurrentS3[self.__event]
-	except:
-	  self.__arrayCurrentA3[0] = float(-9999.99)
-	try: 
-	  self.__arrayCurrentA4[0] = self.__diCounterDarkCurrentS4[self.__event]
-	except:
-	  self.__arrayCurrentA4[0] = float(-9999.99)
-	self.__arrayCurrentB1[0] = float(-9999.99)
-	self.__arrayCurrentB2[0] = float(-9999.99)
-	self.__arrayCurrentB3[0] = float(-9999.99)
-	self.__arrayCurrentB4[0] = float(-9999.99)
-
-
-      #
+        try:
+          self.__arrayCurrentA1[0] = self.__diCounterDarkCurrentS1[self.__event]
+        except:
+          self.__arrayCurrentA1[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA2[0] = self.__diCounterDarkCurrentS2[self.__event]
+        except:
+          self.__arrayCurrentA2[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA3[0] = self.__diCounterDarkCurrentS3[self.__event]
+        except:
+          self.__arrayCurrentA3[0] = float(-9999.99)
+        try: 
+          self.__arrayCurrentA4[0] = self.__diCounterDarkCurrentS4[self.__event]
+        except:
+          self.__arrayCurrentA4[0] = float(-9999.99)
+        self.__arrayCurrentB1[0] = float(-9999.99)
+        self.__arrayCurrentB2[0] = float(-9999.99)
+        self.__arrayCurrentB3[0] = float(-9999.99)
+        self.__arrayCurrentB4[0] = float(-9999.99)
+#
       self.__arraySignalTemperature[0] = float(self.__diCounterTemperature[self.__event])
       self.__arraySignalPosition[0] = self.__diCounterLightSourceDistance[self.__event]
       self.__arraySignalVoltage[0] = float(self.__diCounterVoltage[self.__event])
-      if(self.__cmjPlotDiag > 2): print("self.__arrayCurrentA1[%s] = %s, %s, %s, %s, %s, %s, %s, %s ") % (self.__event,self.__arrayCurrentA1[0],self.__arrayCurrentA2[0],self.__arrayCurrentA3[0],self.__arrayCurrentA4[0],self.__arrayCurrentB1[0],self.__arrayCurrentB2[0],self.__arrayCurrentB3[0],self.__arrayCurrentB4[0])
-##	There has to be a better way to do this...
-##	But amaziningly, there is now easy way to take a 
-##	string and convert it into a character!...
-##	And the Root trees need a character array to 
-##	be read by a root macro later!
-      ## first initialize the arrays:
-      for n in range(0,29):
-	self.__tempDiCounterId[n] = 0
-	self.__tempTestDate[n] = 0
-	self.__tempLightSource[n] = 0
-	self.__tempFlashRate[n] = 0
-	self.__tempLightSourceSide[n] =0
-      for n in range(0,119):
-	self.__tempComment[n] = 0
-      m = 0
-      for self.__character in self.__diCounterId[self.__event]:
-	self.__tempDiCounterId[m] = self.__character
-	m += 1
-      m = 0
-      for self.__character in self.__diCounterTestDate[self.__event]:
-	self.__tempTestDate[m] = self.__character
-	m += 1
-      m = 0
-      for self.__character in self.__diCounterFlashRate[self.__event]:
-	self.__tempFlashRate[m] = self.__character
-	m += 1
-      m = 0
-      for self.__character in self.__diCounterLightSource[self.__event]:
-	self.__tempLightSource[m] = self.__character
-	m += 1
-      m = 0
-      for self.__character in self.__diCounterLightSourceVector[self.__event]:
-	self.__tempLightSourceSide[m] = self.__character
-	m += 1
-      m = 0
-      for self.__character in self.__diCounterComment[self.__event]:
-	self.__tempComment[m] = self.__character
-	m += 1
+      if(self.__cmjDebug > 2): print(("self.__arrayCurrentA1[%s] = %s, %s, %s, %s, %s, %s, %s, %s ") % (self.__event,self.__arrayCurrentA1[0],self.__arrayCurrentA2[0],self.__arrayCurrentA3[0],self.__arrayCurrentA4[0],self.__arrayCurrentB1[0],self.__arrayCurrentB2[0],self.__arrayCurrentB3[0],self.__arrayCurrentB4[0]))
+      self.__tempDiCounter.push_back(self.__diCounterId[self.__event])
+      self.__tempTestDate.push_back(self.__diCounterTestDate[self.__event])
+      self.__tempLightSource.push_back(self.__diCounterLightSource[self.__event])
+      self.__tempFlashRate.push_back(self.__diCounterFlashRate[self.__event])
+      self.__tempLightSourceSide.push_back(self.__diCounterLightSource[self.__event])
+      self.__tempComment.push_back(self.__diCounterComment[self.__event])
       self.__localRootTree1.Fill()  ## fill for every entry... not at once as a list....
     self.__localRootTree1.Write()
 ##
-    #if(self.__cmjPlotDiag > 1) : 
+    #if(self.__cmjDebug > 1) : 
     #  print("__askDicounter__defineTree... self.__localRootTree1.Scan() \n")
     #  self.__localRootTree1.Scan("diCounterId:currentA1:currentA2:currentA3:currentA4:currentB1:currentB2:currentB3:currentB4:testDate:temperature:position:sipmVoltage:lightSource:flashRate","","precision=4")   ## use for debug... let's see what is in the root tree...
 
 ##
 ##
 ## -------------------------------------------------------------
-## 	A class to set up the main window to drive the
-##	python GUI
+##       A class to set up the main window to drive the
+##      python GUI
 ##
 class multiWindow(Frame):
   def __init__(self,parent=NONE, myRow = 0, myCol = 0):
@@ -865,9 +838,9 @@ class multiWindow(Frame):
     self.__entryWidth = 20
     self.__buttonWidth = 5
     self.__maxRow = 2
-##	Dictionary of arrays to hold the Sipm Batch information
+##      Dictionary of arrays to hold the Sipm Batch information
     self.__sipmBatch={}
-##	Define Output Log file... remove this later
+##      Define Output Log file... remove this later
     self.__mySaveIt = saveResult()
     self.__mySaveIt.setOutputFileName('sipmQuerries')
     self.__mySaveIt.openFile()
@@ -877,11 +850,11 @@ class multiWindow(Frame):
     self.__sCount = 0
 ##
 ##
-##	First Column...
+##      First Column...
     self.__col = 0
     self.__firstRow = 0
 ##
-##	Instruction Box...
+##      Instruction Box...
     self.__myInstructions = myScrolledText(self)
     self.__myInstructions.setTextBoxWidth(50)
     self.__myInstructions.makeWidgets()
@@ -892,14 +865,27 @@ class multiWindow(Frame):
     self.__col = 0
     self.__secondRow = 1
     self.__buttonWidth = 20
-##	Send initial Sipm information: PO number, batches recieved and vendor measurements...
+#         Display the debug level selection
+    self.__secondRow = 2
+    self.__col = 0
+    self.__buttonName = 'Debug Level (0 to 5)'
+    self.StringEntrySetup(self.__secondRow,self.__col,self.__labelWidth,self.__entryWidth,self.__buttonWidth,self.__buttonName,self.__buttonName)
+    self.__secondRow +=1
+##      Send initial Sipm information: PO number, batches recieved and vendor measurements...
     self.__getValues = Button(self,text='Get Di-Counters',command=self.__myDiCounters.loadDiCounterRequest,width=self.__buttonWidth,bg='green',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
     self.__secondRow += 1
     self.__getValues = Button(self,text='Histogram',command=self.__myDiCounters.getHistograms,width=self.__buttonWidth,bg='green',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
     self.__secondRow += 1
-###	Third Column...
+    self.__row = 3
+    self.__col = 2
+##         Display the date the script is being run
+    self.__date = myDate(self,self.__row,self.__col,10)      # make entry to row... pack right
+    self.__date.grid(row=self.__row,column=self.__col,sticky=E)
+    self.__col = 0
+    self.__row += 1
+###      Third Column...
     self.__row = 0
     self.__col = 2
     self.__logo = mu2eLogo(self,self.__row,self.__col)     # display Mu2e logo!
@@ -913,32 +899,68 @@ class multiWindow(Frame):
     self.__version.makeLabel()
     self.__version.grid(row=self.__row,column=self.__col,stick=E)
     self.__row += 1
-##         Display the date the script is being run
-    self.__date = myDate(self,self.__row,self.__col,10)      # make entry to row... pack right
-    self.__date.grid(row=self.__row,column=self.__col,sticky=E)
-    self.__col = 0
-    self.__row += 1
+##
     self.__buttonWidth = 10
-##	Add Control Bar at the bottom...
+##      Add Control Bar at the bottom...
     self.__col = 0
     self.__firstRow = 6
     self.__quitNow = Quitter(self,0,self.__col)
     self.__quitNow.grid(row=self.__firstRow,column=0,sticky=W)
-##sendMeasurements
+##
+#####################################################################################
+##
+##  Setup local control: set debug level
+##
+##
+## ===================================================================
+##       Local String Entry button
+##       Need to setup here to retain local program flow
+  def StringEntrySetup(self,row,col,totWidth=20,labelWidth=10,entryWidth=10,entryText='',buttonName='default',buttonText='Enter'):
+    #print("----- StringEntrySetup--- Enter")
+    self.__StringEntry_row = row
+    self.__StringEntry_col = col
+    self.__StringEntry_labelWidth = 10
+    self.__StringEntry_entryWidth = 10
+    self.__StringEntry_buttonWidth= 10
+    self.__StringEntry_entyLabel = ''
+    self.__StringEntry_buttonText = 'Enter'
+    self.__StringEntry_buttonName = buttonName
+    self.__StringEntry_result = 'xxxxaaaa'
+    self.__entryLabel = '' 
+    self.__label = Label(self,width=self.__labelWidth,text=self.__StringEntry_buttonName,anchor=W,justify=LEFT)
+    self.__label.grid(row=self.__StringEntry_row,column=self.__StringEntry_col,sticky=W)
+    self.__ent = Entry(self,width=self.__StringEntry_entryWidth)
+    self.__var = StringVar()        # associate string variable with entry field
+    self.__ent.config(textvariable=self.__var)
+    self.__var.set('')
+    self.__ent.grid(row=self.__StringEntry_row,column=self.__StringEntry_col+1,sticky=W)
+    self.__ent.focus()
+    self.__ent.bind('<Return>',lambda event:self.fetch())
+    self.__button = Button(self,text=self.__StringEntry_buttonText,width=self.__StringEntry_buttonWidth,anchor=W,justify=LEFT,command=self.StringEntryFetch)
+    self.__button.config(bg='#E3E3E3')
+    self.__button.grid(row=self.__StringEntry_row,column=self.__StringEntry_col+2,sticky=W)
+  def StringEntryFetch(self):
+    self.__StringEntry_result = self.__ent.get()
+    self.turnOnDebug(int(self.__StringEntry_result))
+    print(("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result))
+    return self.__StringEntry_result
+##
+################################################################################
 ##
 ## --------------------------------------------------------------------
 ##
-##	Open up file dialog....
+##      Open up file dialog....
   def openFileDialog(self):
-    self.__filePath=tkFileDialog.askopenfilename()
-    print("__multiWindow__::openDialogFile = %s \n") % (self.__filePath)
+    self.__filePath=tkinter.filedialog.askopenfilename()
+    print(("__multiWindow__::openDialogFile = %s \n") % (self.__filePath))
     self.__myDiCounters.openFile(self.__filePath)
     self.__myDiCounters.openLogFile()
 ## --------------------------------------------------------------------
 ##
   def turnOnDebug(self,tempDebug):
     self.__myDiCounters.turnOnDebug(tempDebug)
-    print("__multiWindow__::turnOnDebug = debug level = %s") % (tempDebug)
+    self.__cmjDebug = tempDebug
+    print(("__multiWindow__::turnOnDebug = debug level = %s") % (tempDebug))
 ## --------------------------------------------------------------------
 ## --------------------------------------------------------------------
 ## --------------------------------------------------------------------
@@ -950,16 +972,17 @@ if __name__ == '__main__':
   parser = optparse.OptionParser("usage: %prog [options] file1.txt \n")
   parser.add_option('--debug',dest='debugMode',type='int',default=0,help='set debug: 0 (off - default), 1 = on')
   parser.add_option('-t',dest='testMode',type='int',default=0,help='set to test mode (do not send to database): 1')
-  parser.add_option('--database',dest='database',type='string',default="development",help='development or production')
+  parser.add_option('--database',dest='database',type='string',default="production",help='development or production')
   options, args = parser.parse_args()
-  print("'__main__': options.debugMode = %s \n") % (options.debugMode)
-  print("'__main__': options.testMode  = %s \n") % (options.testMode)
-  print("'__main__': options.database  = %s \n") % (options.database)
+  print(("'__main__': options.debugMode = %s \n") % (options.debugMode))
+  print(("'__main__': options.testMode  = %s \n") % (options.testMode))
+  print(("'__main__': options.database  = %s \n") % (options.database))
   root = Tk()              # or Toplevel()
   bannerText = 'Mu2e::'+ProgramName
   root.title(bannerText)  
   root.geometry("+100+500")  ## set offset of primary window....
   myMultiForm = multiWindow(root,0,0)
+  myMultiForm.turnOnDebug(options.debugMode)
   if(options.debugMode != 0): myMultiForm.turnOnDebug(options.debugMode)
   myMultiForm.grid()
   root.mainloop()

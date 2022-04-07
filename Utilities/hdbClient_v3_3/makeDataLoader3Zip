@@ -1,0 +1,4 @@
+##
+##  File = "makeDataLoaderZip"
+##
+zip -r Dataloader.zip DataLoader3.py ## save as Dataloader.zip because class is named dataloader inside

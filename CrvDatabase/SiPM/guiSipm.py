@@ -42,22 +42,25 @@
 ##				was not used to produce the current version... this is now added in.
 ##  Modified by cmj2020Jun16... Use cmjGuiLibGrid2019Jan30
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
-##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2020Dec16..M. replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May11... replace dataloader3.zip with dataloader.zip
 ##
 ##
 ##  To run this script:
 ##	python readSipmSpreadSheet_2016Jun27.py -i "Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" 
 ##
 #
-from Tkinter import *         # get widget class
-import Tkinter as tk
-import tkFileDialog
+from tkinter import *         # get widget class
+import tkinter as tk
+import tkinter.filedialog
 import os
 import sys        ## 
 import optparse   ## parser module... to parse the command line arguments
 import math
 from time import *
-sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip") ## 2020Dec16
+sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip") ## 2021May11
 sys.path.append("../CrvUtilities/crvUtilities.zip")      ## 2020Jul02 add highlight to scrolled list
 from DataLoader import *   ## module to read/write to database....
 from databaseConfig import *
@@ -65,7 +68,7 @@ from cmjGuiLibGrid import *  ## cmj2020Aug03
 from Sipm import *
 ##
 ProgramName = "guiSipm.py"
-Version = "version2020.12.16"
+Version = "version2021.05.12"
 ##
 ##
 ##
@@ -224,22 +227,65 @@ class multiWindow(Frame):
 ##         Display the date the script is being run
     self.__date = myDate(self,self.__row,self.__col,10)      # make entry to row... pack right
     self.__date.grid(row=self.__row,column=self.__col,sticky=E)
+#         Display the debug level selection
+    self.__col = 0
+    self.__row = 8
+    self.__buttonName = 'Debug Level (0 to 5)'
+    self.StringEntrySetup(self.__row,self.__col,self.__labelWidth,self.__entryWidth,self.__buttonWidth,self.__buttonName,self.__buttonName)
     self.__col = 0
     self.__row += 1
     self.__buttonWidth = 10
 ##	Add Control Bar at the bottom...
     self.__col = 0
-    self.__firstRow = 7
+    self.__firstRow = 9
     self.__quitNow = Quitter(self,0,self.__col)
     self.__quitNow.grid(row=self.__firstRow,column=0,sticky=W)
+##
+#####################################################################################
+##
+##  Setup local control: set debug level
+##
+##
+## ===================================================================
+##       Local String Entry button
+##       Need to setup here to retain local program flow
+  def StringEntrySetup(self,row,col,totWidth=20,labelWidth=10,entryWidth=10,entryText='',buttonName='default',buttonText='Enter'):
+    print("----- StringEntrySetup--- Enter")
+    self.__StringEntry_row = row
+    self.__StringEntry_col = col
+    self.__StringEntry_labelWidth = 10
+    self.__StringEntry_entryWidth = 10
+    self.__StringEntry_buttonWidth= 10
+    self.__StringEntry_entyLabel = ''
+    self.__StringEntry_buttonText = 'Enter'
+    self.__StringEntry_buttonName = buttonName
+    self.__StringEntry_result = 'xxxxaaaa'
+    self.__entryLabel = '' 
+    self.__label = Label(self,width=self.__labelWidth,text=self.__StringEntry_buttonName,anchor=W,justify=LEFT)
+    self.__label.grid(row=self.__StringEntry_row,column=self.__StringEntry_col,sticky=W)
+    self.__ent = Entry(self,width=self.__StringEntry_entryWidth)
+    self.__var = StringVar()        # associate string variable with entry field
+    self.__ent.config(textvariable=self.__var)
+    self.__var.set('')
+    self.__ent.grid(row=self.__StringEntry_row,column=self.__StringEntry_col+1,sticky=W)
+    self.__ent.focus()
+    self.__ent.bind('<Return>',lambda event:self.fetch())
+    self.__button = Button(self,text=self.__StringEntry_buttonText,width=self.__StringEntry_buttonWidth,anchor=W,justify=LEFT,command=self.StringEntryFetch)
+    self.__button.config(bg='#E3E3E3')
+    self.__button.grid(row=self.__StringEntry_row,column=self.__StringEntry_col+2,sticky=W)
+  def StringEntryFetch(self):
+    self.__StringEntry_result = self.__ent.get()
+    self.turnOnDebug(int(self.__StringEntry_result))
+    print(("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result))
+    return self.__StringEntry_result
 ##
 ##
 ## --------------------------------------------------------------------
 ##
 ##	Open up file dialog....Loca
   def openFileDialog(self):
-    self.__filePath=tkFileDialog.askopenfilename()
-    print("__multiWindow__::openDialogFile = %s \n") % (self.__filePath)
+    self.__filePath=tkinter.filedialog.askopenfilename()
+    print(("__multiWindow__::openDialogFile = %s \n") % (self.__filePath))
     self.__mySipm.openFile(self.__filePath)
     self.__mySipm.turnOnSendToDatabase()
 ##
@@ -249,18 +295,18 @@ class multiWindow(Frame):
 ##	Open up file dialog....Locate multiple files in a string
 ## cmj2019May14 
   def openFileDialogMultipleFiles(self):
-    self.__multipleFilePath=tkFileDialog.askopenfilenames()  ## add an "s" at the end to get the string for several files
+    self.__multipleFilePath=tkinter.filedialog.askopenfilenames()  ## add an "s" at the end to get the string for several files
     #print("__multiWindow__::openFileDialogMultipleFiles = %s \n") % (self.__multipleFilePath)
     self.__multipleFileNames = list(self.__multipleFilePath)
     for self.__myFile in self.__multipleFileNames:
-      print("__multiWindow__::openFileDialogMultipleFiles = %s \n") % (self.__myFile)
+      print(("__multiWindow__::openFileDialogMultipleFiles = %s \n") % (self.__myFile))
 ##
 ## ------------------------------------------------------------------
 ##	Send initial information to database
   def sendInitialToDatabase(self):
     ## cmj2019May14 self.__mySipm.readFile('initial')
     for self.__myFile in self.__multipleFileNames:						  ## cmj2019May14
-      print("__multiWindow__::sendInitialToDatabase... load from file: %s \n") % (self.__myFile)  ## cmj2019May14
+      print(("__multiWindow__::sendInitialToDatabase... load from file: %s \n") % (self.__myFile))  ## cmj2019May14
       self.__mySipm.readFile('initial',self.__myFile)
       self.__mySipm.sendPoNumberToDatabase()
       self.__mySipm.sendReceivedPoToDatabase()
@@ -272,7 +318,7 @@ class multiWindow(Frame):
   def sendPackNumberToDatabase(self):
     ##cmj2019May14 self.__mySipm.readFile('packnumber')
     for self.__myFile in self.__multipleFileNames:							## cmj2019May14
-      print("__multiWindow__::sendPackNumberToDatabase... load from file: %s \n") % (self.__myFile)	## cmj2019May14
+      print(("__multiWindow__::sendPackNumberToDatabase... load from file: %s \n") % (self.__myFile))	## cmj2019May14
       self.__mySipm.readFile('packnumber',self.__myFile)
       self.__mySipm.sendPackNumberToDatabase()
 ##
@@ -282,7 +328,7 @@ class multiWindow(Frame):
   def sendVendorInformation(self):
     ##cmj2019May14 self.__mySipm.readFile('vendor')
     for self.__myFile in self.__multipleFileNames:							## cmj2019May14
-      print("__multiWindow__::sendVendorInformation... load from file: %s \n") % (self.__myFile) 	## cmj2019May14
+      print(("__multiWindow__::sendVendorInformation... load from file: %s \n") % (self.__myFile)) 	## cmj2019May14
       self.__mySipm.readFile('vendor',self.__myFile)
       self.__mySipm.sendSipmVendorMeasToDatabase()
 ##
@@ -291,7 +337,7 @@ class multiWindow(Frame):
 ##
   def sendLocalInformation(self):
     for self.__myFile in self.__multipleFileNames:						##cmj2019May14 
-      print("__multiWindow__::sendLocalInformation... load from file: %s \n") % (self.__myFile) ##cmj2019May14 
+      print(("__multiWindow__::sendLocalInformation... load from file: %s \n") % (self.__myFile)) ##cmj2019May14 
       self.__mySipm.readFile('local',self.__myFile)						##cmj2019May14 
     ##cmj2019May14 self.__mySipm.readFile('local')
       self.__mySipm.sendSipmLocalMeasToDatabase()
@@ -302,14 +348,14 @@ class multiWindow(Frame):
   def sendLocalIVInformation(self):
     ##cmj2019May14 self.__mySipm.readIVfile()
     for self.__myFile in self.__multipleFileNames:
-      print("__multiWindow__::sendLocalIVInformation... load from file: %s \n") % (self.__myFile)
+      print(("__multiWindow__::sendLocalIVInformation... load from file: %s \n") % (self.__myFile))
       self.__mySipm.readIVfile(self.__myFile)
       self.__mySipm.sendIvMeasurmentsTodatabase()
 ##
 ## --------------------------------------------------------------------
 ##
   def turnOnDebug(self,tempDebug):
-    self.__mySipm.turnOnDebug(tempDebug)
+    self.__mySipm.setDebugLevel(tempDebug)
 ## --------------------------------------------------------------------
   def turnOnSendToDatabase(self):
     self.__mySipm.turnOnSendToDatabase()
@@ -336,9 +382,9 @@ if __name__ == '__main__':
   parser.add_option('--database',dest='database',type='string',default="production",help='development or production')
   parser.add_option('--update',dest='update',type='string',default="add",help='update to update entries')
   options, args = parser.parse_args()
-  print("'__main__': options.debugMode = %s \n") % (options.debugMode)
-  print("'__main__': options.testMode  = %s \n") % (options.testMode)
-  print("'__main__': options.database  = %s \n") % (options.database)
+  print(("'__main__': options.debugMode = %s \n") % (options.debugMode))
+  print(("'__main__': options.testMode  = %s \n") % (options.testMode))
+  print(("'__main__': options.database  = %s \n") % (options.database))
   root = Tk()              # or Toplevel()
   bannerText = 'Mu2e::'+ProgramName
   root.title(bannerText)  

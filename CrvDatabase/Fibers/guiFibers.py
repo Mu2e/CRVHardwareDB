@@ -5,7 +5,7 @@
 ##  Derived from File = "guiExtrusions.py"
 ##
 ##  Python script to read in the vendor generated files for the 
-##	fibers.
+##      fibers.
 ##
 ##   Merrill Jenkins
 ##   Department of Physics
@@ -16,18 +16,21 @@
 ##
 ##  Modified by cmj2018Apr27... Change to hdbClient_v2_0
 ##  Modified by cmj2018Oct4.... Change the crvUtilities to contain version of cmjGuiLibGrid2018Oct1 that adds
-##				yellow highlight to selected scrolled list items
+##                        yellow highlight to selected scrolled list items
 ##  Modified by cmj2020Jul09... change hdbClient_v2_0 -> hdbClient_v2_2
 ##  Modified by cmj2020Jul09... change crvUtilities2018->crvUtilities; cmjGuiLibGrid2018Oct1-> cmjGuiLibGrid2020Jan30
 ##  Modified by cmj2020Aug03... cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##
 ##
 sendDataBase = 0  ## zero... don't send to database
 #
-from Tkinter import *         # get widget class
-import Tkinter as tk
-import tkFileDialog
+from tkinter import *         # get widget class
+import tkinter as tk
+import tkinter.filedialog
 import os
 import sys        ## 
 import optparse   ## parser module... to parse the command line arguments
@@ -40,11 +43,11 @@ from databaseConfig import *
 from cmjGuiLibGrid import *       ## 2020Aug03
 from Fibers import *
 ProgramName = "guiFibers"
-Version = "version2020.12.16"
+Version = "version2021.05.12"
 ##
 ## -------------------------------------------------------------
-## 	A class to set up the main window to drive the
-##	python GUI
+##       A class to set up the main window to drive the
+##      python GUI
 ##
 class multiWindow(Frame):
   def __init__(self,parent=NONE, myRow = 0, myCol = 0):
@@ -57,9 +60,9 @@ class multiWindow(Frame):
     self.__maxRow = 2
 ##
 ##
-##	Dictionary of arrays to hold the Sipm Batch information
+##      Dictionary of arrays to hold the Sipm Batch information
     self.__sipmBatch={}
-##	Define Output Log file... remove this later
+##      Define Output Log file... remove this later
     self.__mySaveIt = saveResult()
     self.__mySaveIt.setOutputFileName('fiberQuerries')
     self.__mySaveIt.openFile()
@@ -70,11 +73,11 @@ class multiWindow(Frame):
 ##Scatter Plots
 ##
 ##
-##	First Column...
+##      First Column...
     self.__col = 0
     self.__firstRow = 0
 ##
-##	Instruction Box...
+##      Instruction Box...
     self.__myInstructions = myScrolledText(self)
     self.__myInstructions.setTextBoxWidth(60)
     self.__myInstructions.makeWidgets()
@@ -88,42 +91,42 @@ class multiWindow(Frame):
     self.__getValues = Button(self,text='Get Input File',command=self.openFileDialog,width=self.__buttonWidth,bg='lightblue',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
     self.__secondRow += 1
-##	Send the Initial Fiber information from the vendors...
+##      Send the Initial Fiber information from the vendors...
     self.__getValues = Button(self,text='Add Fibers',command=self.startInitialEntries,width=self.__buttonWidth,bg='green',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
-##	Send the vendor fiber measurements...
+##      Send the vendor fiber measurements...
     self.__secondRow += 1
     self.__getValues = Button(self,text='Vendor Measurement',command=self.sendVendorMeasurements,width=self.__buttonWidth,bg='green',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
-##	Send the locally measured ADC counts vs wavelength measurments...
-##	Send the locally measured fiber diameters...
+##      Send the locally measured ADC counts vs wavelength measurments...
+##      Send the locally measured fiber diameters...
     self.__secondRow += 1
     self.__getValues = Button(self,text='Local Fiber Diameter Measurement',command=self.sendLocalMeasurements,width=self.__buttonWidth,bg='green',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
-##	Send the locally measured attenuation measurments: ADC counts vs length
+##      Send the locally measured attenuation measurments: ADC counts vs length
     self.__secondRow += 1
     self.__getValues = Button(self,text='Local Fiber Attenuation Measurement',command=self.sendLocalAttenuationMeasurements,width=self.__buttonWidth,bg='green',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
-##	Send the locally measured ADC counts vs wavelength measurments...
+##      Send the locally measured ADC counts vs wavelength measurments...
     self.__secondRow += 1
     self.__getValues = Button(self,text='Local Spectral Measurements',command=self.sendSpecturalMeasurements,width=self.__buttonWidth,bg='green',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
 #    self.__secondRow += 1
-###	Setup Debug option
+###      Setup Debug option
     self.__col = 1
     self.__secondRow = 2
     self.__buttonWidth = 20
     self.__getValues = Button(self,text='Turn on Test',command=self.__myFibers.turnOffSendToDatabase,width=self.__buttonWidth,bg='orange',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
     self.__secondRow += 1
-###	Setup Debug option
+###      Setup Debug option
     self.__col = 1
     self.__secondRow = 3
     self.__buttonWidth = 20
     self.__getValues = Button(self,text='Turn on Debug',command=self.turnOnDebug,width=self.__buttonWidth,bg='orange',fg='black')
     self.__getValues.grid(row=self.__secondRow,column=self.__col,sticky=W)
     self.__secondRow += 1
-###	Third Column...
+###      Third Column...
     self.__row = 0
     self.__col = 2
     self.__logo = mu2eLogo(self,self.__row,self.__col)     # display Mu2e logo!
@@ -143,7 +146,7 @@ class multiWindow(Frame):
     self.__col = 0
     self.__row += 1
     self.__buttonWidth = 10
-##	Add Control Bar at the bottom...
+##      Add Control Bar at the bottom...
     self.__col = 0
     self.__firstRow = 7
     self.__quitNow = Quitter(self,0,self.__col)
@@ -152,10 +155,10 @@ class multiWindow(Frame):
 ##
 ## --------------------------------------------------------------------
 ##
-##	Open up file dialog....
+##      Open up file dialog....
   def openFileDialog(self):
-    self.__filePath=tkFileDialog.askopenfilename()
-    print("__multiWindow__::openDialogFile = %s \n") % (self.__filePath)
+    self.__filePath=tkinter.filedialog.askopenfilename()
+    print(("__multiWindow__::openDialogFile = %s \n") % (self.__filePath))
     self.__myFibers.openFile(self.__filePath)
 ##
 ## --------------------------------------------------------------------
@@ -191,7 +194,7 @@ class multiWindow(Frame):
 ## --------------------------------------------------------------------
 ##
   def turnOnDebug(self,tempDebug):
-    print("__multiWindow__::turnOnDebug= %s \n") % (tempDebug)
+    print(("__multiWindow__::turnOnDebug= %s \n") % (tempDebug))
     self.__myFibers.setDebugLevel(tempDebug)
     self.__cmjGuiDebug = 1
 ## --------------------------------------------------------------------
@@ -214,7 +217,7 @@ class multiWindow(Frame):
 ##
 ## --------------------------------------------------------------------
 ##
-##	Run main GUI program here!
+##      Run main GUI program here!
 ##
 if __name__ == '__main__':
   parser = optparse.OptionParser("usage: %prog [options] file1.txt \n")
@@ -223,9 +226,9 @@ if __name__ == '__main__':
   parser.add_option('--database',dest='database',type='string',default="development",help='development or production')
   parser.add_option('--update',dest='updateMode',type='int',default=0,help='0 or 1 (update)')
   options, args = parser.parse_args()
-  print("'__main__': options.debugMode = %s \n") % (options.debugMode)
-  print("'__main__': options.testMode  = %s \n") % (options.testMode)
-  print("'__main__': options.database  = %s \n") % (options.database)
+  print(("'__main__': options.debugMode = %s \n") % (options.debugMode))
+  print(("'__main__': options.testMode  = %s \n") % (options.testMode))
+  print(("'__main__': options.database  = %s \n") % (options.database))
   root = Tk()              # or Toplevel()
   bannerText = 'Mu2e::'+ProgramName
   root.title(bannerText)  

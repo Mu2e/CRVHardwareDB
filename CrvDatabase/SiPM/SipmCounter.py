@@ -22,10 +22,14 @@
 ##  Modified by cmj2020Jun16... Change to cmjGuiLibGrid2019Jan30
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May11... replace dataloader3.zip with dataloader.zip
+##  Modified by cmj2022Jan28... replace "count(*)" with single view table as per Steve's Email 2022Jan28 11:10 AM
 ##
-from Tkinter import *         # get widget class
+from tkinter import *         # get widget class
 import sys
-sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2020Dec16
+sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2021May11
 sys.path.append("../CrvUtilities/crvUtilities.zip")      ## 2020Jul02 add highlight to scrolled list
 from DataLoader import *
 from databaseConfig import *
@@ -39,7 +43,7 @@ import time
 ##
 ##
 ProgramName = "SipmCounter"
-Version = "version2020.12.16"
+Version = "version2022.01.28"
 
 
 ##############################################################################################
@@ -47,7 +51,7 @@ Version = "version2020.12.16"
 ###  Class to store extrusion elements
 class countSipms(object):
   def __init__(self):
-    print 'inside class countSimps, init \n'
+    print('inside class countSimps, init \n')
     self.__cmjDebug = 0        ## no debug statements
     self.__maxColumns = 7      ## maximum columns in the spread sheet
     self.__sendToDatabase = 0  ## Do not send to database
@@ -58,7 +62,7 @@ class countSipms(object):
 ## -----------------------------------------------------------------
   def turnOnDebug(self,tempDebugLevel):
     self.__cmjDebug = tempDebugLevel  # turn on debug
-    print("...extrusion::turnOnDebug... turn on debug: level = %s \n") % (self.__cmjDebug)
+    print(("..._countSipms__::turnOnDebug... turn on debug: level = %s \n") % (self.__cmjDebug))
 ## -----------------------------------------------------------------
   def turnOffDebug(self):
     self.__cmjDebug = 0  # turn on debug
@@ -66,7 +70,7 @@ class countSipms(object):
 ## -----------------------------------------------------------------
   def setDebugLevel(self,tempValue):
     self.__cmjDebug = int(tempValue)  # turn on debug
-    print("......__countSipms__::::setDebugLevel... set debug level = %d\n") % self.__cmjDebug
+    print(("......__countSipms__::::setDebugLevel... set debug level = %d\n") % self.__cmjDebug)
 ## -----------------------------------------------------------------
 ##
 ##	Make querries to data base
@@ -75,7 +79,7 @@ class countSipms(object):
     self.__whichDatabase = 'development'
     print("......__countSipms__::getFromDevelopmentDatabase... get from development database \n")
     self.__queryUrl = self.__database_config.getQueryUrl()
-    print("....__countSipms__::setupDevelopmentDatabase... self.__url =  %s") % self.__queryUrl
+    print(("....__countSipms__::setupDevelopmentDatabase... self.__url =  %s") % self.__queryUrl)
 ##
 ## -------------------------------------------------------------------
 ##	Make querries to data base
@@ -84,17 +88,16 @@ class countSipms(object):
     self.__whichDatabase = 'production'
     print("...__countSipms__::setupProductionDatabase... get from production database \n")
     self.__queryUrl = self.__database_config.getProductionQueryUrl()
-    print("....__countSipms__::setupProductionDatabase... self.__url =  %s") % self.__queryUrl
+    print(("....__countSipms__::setupProductionDatabase... self.__url =  %s") % self.__queryUrl)
 ## ---------------------------------------------------------------------------
   def countTheSimps(self):
     self.__getDatabaseValue = DataQuery(self.__queryUrl)
-    self.__tables = "sipms"
-    #rows = dataQuery.query('mu2e_hardware_prd', 'sipms', 'count(*)', echoUrl=True)
-    self.__rows = self.__getDatabaseValue.query(self.__database,self.__tables,'count(*)')
+    self.__tables = "mu2e_table_cnts"   ## cmj 2022Jan28
+    self.__rows = self.__getDatabaseValue.query(self.__database,self.__tables,"sipms_cnt") ## cmj 2022Jan28
     print("\nQuery Results:")
     for self.__row in self.__rows:
-      print(self.__row)
-    print("__countExtrusion__:countTheSipms:: number of rows = %s ") % self.__rows[0]
+      print((self.__row))
+    print(("__countExtrusion__:countTheSipms:: number of rows = %s ") % self.__rows[0])
 
 
 ##############################################################################################
@@ -113,12 +116,12 @@ if __name__ == '__main__':
   options, args = parser.parse_args()
 ##
   mySipm = countSipms()
-  print ("\nRunning %s \n") % (ProgramName)
-  print ("%s \n") % (Version)
+  print(("\nRunning %s \n") % (ProgramName))
+  print(("%s \n") % (Version))
   if(options.database == 'development'):
       mySipm.setupDevelopmentDatabase()  ## turns on send to development database
   elif(options.database == 'production'):
       mySipm.setupProductionDatabase()  ## turns on send to production database
   mySipm.countTheSimps()
 #
-  print("Finished running %s \n") % (ProgramName)
+  print(("Finished running %s \n") % (ProgramName))

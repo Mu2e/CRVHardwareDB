@@ -58,23 +58,27 @@
 ##  Modified by cmj2019Man14 from Modified by cmj2019Jan23... Add changes to add I vs V information from a list of I vs V files!
 ##  Modified by cmj2019May14 from Modified by cmj2019Jan24... Add changes to add Sipm tests or information from regular SiPMs test files
 ##  Modified by cmj2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid (not used)
+##  Modified by cmj2021Mar2.... Convert from python2 to python3: 2to3 -w *.py
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3
 ##
 ##
 ##
 ##
 ##  To run this script (enter all SiPM data:
-##	python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" 
+##      python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" 
 ##  To enter the SiPM Purchase order information:
-##	python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 1
+##      python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 1
 ##  To enter the SiPM Purchase order recieved informaion
-##	python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 2
+##      python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 2
 ##  To enter the SiPM Id numbers into the data018Oct2 add highlight to scrolled listbase:
-##	python Sipm.py -i "SiPMSpreadSheets/Sip##  File = "Sipm2017Oct9.py"ms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 3
+##      python Sipm.py -i "SiPMSpreadSheets/Sip##  File = "Sipm2017Oct9.py"ms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 3
 ##  To enter the vendor measurement of the SiPMs into the database:
-##	python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 4
+##      python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 4
 ##  To enter the locally measured quantities into the database:
-##	python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 5
+##      python Sipm.py -i "SiPMSpreadSheets/Sipms_151224_S13360-2050VE_data_2016Jun27TEST.csv" -m 5
 ##
 ##
 #
@@ -85,13 +89,13 @@ import math
 import string
 from collections import defaultdict
 from time import *
-sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2020Dec16
+sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader3.zip")  ## 2020Dec16
 sys.path.append("../CrvUtilities/crvUtilities.zip")      ## 2020Jul02 add highlight to scrolled list
 from DataLoader import *   ## module to read/write to database....
 from databaseConfig import *
 from generalUtilities import generalUtilities
 ProgramName = "Sipm.py"
-Version = "version2020.12.16"
+Version = "version2021.05.12"
 
 
 ##############################################################################################
@@ -113,10 +117,10 @@ class sipm(object):
     self.__database = ''
     self.__update = 0
     self.__startTime = strftime('%Y_%m_%d_%H_%M')
-    self.__sleepTime = 0.5 ## sleep time between data entries... so we don't send two records at the same time!
+    self.__sleepTime = 5.0 ## sleep time between data entries... so we don't send two records at the same time!
     self.__ivSleepTime = 0.5
-##	Set maximum numbers of tries to ask the database... sometimes it does not answer
-##	Currently for sendSipmIdsToDatabase, only
+##      Set maximum numbers of tries to ask the database... sometimes it does not answer
+##      Currently for sendSipmIdsToDatabase, only
     self.__maxTries = 10
     self.__maxIVtries = 3
 ## -----------------------------------------------------------------
@@ -126,14 +130,19 @@ class sipm(object):
     self.__endBanner.append("## ----------------------------------------- \n")
     self.__endBanner.append("## Program "+ProgramName+" Starting at time "+self.__startTime+" \n")
     self.__endBanner.append("## Program "+ProgramName+" Terminating at time "+self.__stopTime+" \n")
-    print("Program  %s Starting at time %s ") % (ProgramName,self.__startTime)
-    print("Program  %s Starting at time %s ") % (ProgramName,self.__stopTime)
+    print(("Program  %s Starting at time %s ") % (ProgramName,self.__startTime))
+    print(("Program  %s Starting at time %s ") % (ProgramName,self.__stopTime))
     for self.__endBannerLine in self.__endBanner:
       self.__logFile.write(self.__endBannerLine)
 ## -----------------------------------------------------------------
   def turnOnDebug(self):
     self.__cmjDebug = 5  # turn on debug
     print("...sipm::turnOnDebug... turn on debug \n")
+## -----------------------------------------------------------------
+## -----------------------------------------------------------------
+  def setDebugLevel(self,temp):
+    self.__cmjDebug = temp  # turn on debug
+    print("...sipm::setDebugLevel... turn on debug \n")
 ## -----------------------------------------------------------------
   def setDebug(self, tempDebug):
     self.__cmjDebug = tempDebug  # turn on debug
@@ -145,7 +154,7 @@ class sipm(object):
 ## -----------------------------------------------------------------
   def turnOnSendToDatabase(self):
     self.__sendToDatabase = 1      ## send to database
-    print("...sipm::turnOnSendToDataBase... send to database: self.__sendToDatabase = %s \n",self.__sendToDatabase)
+    print(("...sipm::turnOnSendToDataBase... send to database: self.__sendToDatabase = %s \n",self.__sendToDatabase))
 ## -----------------------------------------------------------------
   def turnOffSendToDatabase(self):
     self.__sendToDatabase = 0      ## send to database
@@ -155,6 +164,8 @@ class sipm(object):
     self.__whichDatabase = 'development'
     print("...sipm::sendToDevelopmentDatabase... send to development database \n")
     self.__url = self.__database_config.getWriteUrl()
+    #if(self.__cmjDebug > 0): print("...sipm::sendToDevelopmentDatabase: url = %s \n",self.__url)
+    print("...sipm::sendToDevelopmentDatabase: url = %s \n",self.__url)
     self.__password = self.__database_config.getSipmKey()
     self.__queryUrl = self.__database_config.getQueryUrl()  ## also need to query the database for sipm status
     self.__database = 'mu2e_hardware_dev'
@@ -172,7 +183,7 @@ class sipm(object):
     print("...sipm::updateMode ==> change from insert to update mode")
     self.__update = 1
 ## -----------------------------------------------------------------
-  def openFile(self,tempFileName):	## method to open the file
+  def openFile(self,tempFileName):      ## method to open the file
     self.__inFileName = tempFileName
     self.__inFile=open(self.__inFileName,'r')   ## read only file
 ## -----------------------------------------------------------------
@@ -188,10 +199,10 @@ class sipm(object):
 ##  Read in all files except I vs V data file...
 ##  This method has been modified so that it can be called multiple times
 ##  to read a single input file at each call....  2019Jan24... Re-added 2019May14
-  def readFile(self,tempTestType,localFileName):		## method to read the file's contents
-    print ("XXXX __sipm__::readFile: enter... tempTestType = %s \n") % (tempTestType)
+  def readFile(self,tempTestType,localFileName):            ## method to read the file's contents
+    print(("XXXX __sipm__::readFile: enter... tempTestType = %s \n") % (tempTestType))
     print("XXXX __sipm__::readFile: enter")
-    print("XXXX __sipm__::readFile: read file = %s \n") % localFileName
+    print(("XXXX __sipm__::readFile: read file = %s \n") % localFileName)
     self.openFile(localFileName)  ## open the file and read in the contents... cmj2019May14
     self.__poNumber = 'none'
     self.__poNumberWorker = 'none'
@@ -199,7 +210,7 @@ class sipm(object):
     self.__poNumberQuantity = 0
     self.__poNumberDate = 'none'
     ##
-    self.__totBatch = 0		# total number of batches
+    self.__totBatch = 0            # total number of batches
     self.__batchNumber = {}           # list of batch numbers
     self.__batchWorker = {}           # key is bath number
     self.__batchInstitution = {}   # key is batch number
@@ -248,47 +259,49 @@ class sipm(object):
 ##
     self.__fileLine = []
     self.__fileLine = self.__inFile.readlines()  ## Read whole file here....
-##	Sort, define and store information here...
+##      Sort, define and store information here...
     self.__maxColumns = 25  ## number of columns in spread sheet..2017oct9
     for self.__newLine in self.__fileLine:
       if (self.__cmjDebug > 1): 
-	print("readFile::self.__newLine = %s  \n") % (self.__newLine)
-	print("readFile::self.__newLine tempTestType = %s  ") % (tempTestType)
+       print(("readFile::self.__newLine = %s  \n") % (self.__newLine))
+       print(("readFile::self.__newLine tempTestType = %s  ") % (tempTestType))
       if (tempTestType == 'initial'):
-	if (self.__newLine.find('Po Number') != -1): self.storePoNumber(self.__newLine)
-	if (self.__newLine.find('Po Worker') != -1): self.storePoWorker(self.__newLine)
-	if (self.__newLine.find('Po Institution') != -1): self.storePoInstitution(self.__newLine)
-	if (self.__newLine.find('Po Quantity Ordered') != -1): self.storePoQuantityOrdered(self.__newLine)
-	if (self.__newLine.find('Po Order Date') != -1): self.storePoOrderDate(self.__newLine)
-	##  Sipm Batch
-	if (self.__newLine.find('Total Batches')!= -1): self.storeTotalBatch(self.__newLine)
-	if (self.__newLine.find('Batch Number') != -1): self.storeBatchNumber(self.__newLine)  
-	if (self.__newLine.find('Batch Worker') != -1): self.storeBatchWorker(self.__newLine)
-	if (self.__newLine.find('Batch Institution') != -1): self.storeBatchInstitution(self.__newLine)
-	if (self.__newLine.find('Batch Quantity Received') != -1): self.storeBatchQuantityReceived(self.__newLine)
-	if (self.__newLine.find('Batch Receive Date') != -1): self.storeBatchReceiveDate(self.__newLine)
-	if (self.__newLine.find('CrvSipm-') != -1) : self.storeSipmTableQuantities(self.__newLine)
+        if (self.__newLine.find('Po Number') != -1): self.storePoNumber(self.__newLine)
+        if (self.__newLine.find('Po Worker') != -1): self.storePoWorker(self.__newLine)
+        if (self.__newLine.find('Po Institution') != -1): self.storePoInstitution(self.__newLine)
+        if (self.__newLine.find('Po Quantity Ordered') != -1): self.storePoQuantityOrdered(self.__newLine)
+        if (self.__newLine.find('Po Order Date') != -1): self.storePoOrderDate(self.__newLine)
+        ##  Sipm Batch
+        if (self.__newLine.find('Total Batches')!= -1): self.storeTotalBatch(self.__newLine)
+        if (self.__newLine.find('Batch Number') != -1): self.storeBatchNumber(self.__newLine)  
+        if (self.__newLine.find('Batch Number') != -1): print(("readFile:: Found Batch number: %s") % (self.__newLine))
+        if (self.__newLine.find('Batch Worker') != -1): self.storeBatchWorker(self.__newLine)
+        if (self.__newLine.find('Batch Institution') != -1): self.storeBatchInstitution(self.__newLine)
+        if (self.__newLine.find('Batch Quantity Received') != -1): self.storeBatchQuantityReceived(self.__newLine)
+        if (self.__newLine.find('Batch Receive Date') != -1): self.storeBatchReceiveDate(self.__newLine)
+        if (self.__newLine.find('CrvSipm-') != -1) : self.storeSipmTableQuantities(self.__newLine)
       if(tempTestType == 'packnumber'):
-	if (self.__newLine.find('CrvSipm-') != -1 and self.__newLine.find('(ES2)') ) : self.storeSipmTableQuantities(self.__newLine)  ## same spreadsheet as simp Batch
-      ##  Sipm measurements
+        if (self.__newLine.find('CrvSipm-') != -1 and self.__newLine.find('(ES2)') ) : self.storeSipmTableQuantities(self.__newLine)  ## same spreadsheet as simp Batch
+        ##  Sipm measurements
       if (tempTestType == 'vendor'):
-	print("readFile::self.__newLine vendor selected ")
-	if (self.__newLine.find('CrvSipm-') != -1): self.storeSipmVendorMeasurement(self.__newLine)
+        print("readFile::self.__newLine vendor selected ")
+        print(("readFile::self.__newLine = %s  \n") % (self.__newLine))
+        if (self.__newLine.find('CrvSipm-') != -1): self.storeSipmVendorMeasurement(self.__newLine)
       elif(tempTestType == 'local'):
-	if(self.__newLine.find('Test_Date') != -1): self.storeLocalTestDate(self.__newLine)
-	#if(self.__newLine.find('Batch')): self.storeSipmBatch(self.__newLine)
-	self.__sipmLocalBatch = 1
-	if(self.__newLine.find('Institution') != -1): self.storeLocalInstitution(self.__newLine)
-	if(self.__newLine.find('Worker') != -1): self.storeLocalWorker(self.__newLine)
-	if(self.__newLine.find('WorkStation') != -1): self.storeLocalWorkstation(self.__newLine)
-	if(self.__newLine.find('CrvSipm-') != -1): self.storeSipmLocalMeasurement(self.__newLine)
+        if(self.__newLine.find('Test_Date') != -1): self.storeLocalTestDate(self.__newLine)
+        #if(self.__newLine.find('Batch')): self.storeSipmBatch(self.__newLine)
+        self.__sipmLocalBatch = 1
+        if(self.__newLine.find('Institution') != -1): self.storeLocalInstitution(self.__newLine)
+        if(self.__newLine.find('Worker') != -1): self.storeLocalWorker(self.__newLine)
+        if(self.__newLine.find('WorkStation') != -1): self.storeLocalWorkstation(self.__newLine)
+        if(self.__newLine.find('CrvSipm-') != -1): self.storeSipmLocalMeasurement(self.__newLine)
     #if(self.__cmjDebug > 1): 
     #  print 'XXXX __sipm__::readFile: exit'
     #  if(tempTestType == 'vendor'): self.dumpSpreadSheet()
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		I vs V... Begin
+##            I vs V... Begin
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -296,14 +309,14 @@ class sipm(object):
 ## ----------------------------------------------------------------
 ##
 ## -----------------------------------------------------------------
-##	The following set of methods are for the IV plot storage
+##      The following set of methods are for the IV plot storage
 ## -----------------------------------------------------------------
 ##  Allow for multiple I vs V files to be opened...
 ##  Open each one... one at a time... load the I vs V information
 ##  then close the file....
   def readIVfile(self,localFileName):
     print("XXXX __sipm__::readIVfile: enter")
-    print("XXXX __sipm__::readIVfile: read file = %s \n") % localFileName
+    print(("XXXX __sipm__::readIVfile: read file = %s \n") % localFileName)
     self.openFile(localFileName)  ## open the file and read in the contents
     self.__ivSipmId = {}
     self.__ivTestDate = {}
@@ -311,40 +324,40 @@ class sipm(object):
     self.__ivVoltage = {}
     self.__ivCurrent = {}
     self.__maxIvColumns = 2
-    self.__pointCount = 0			## start a new set of points with each file open.
+    self.__pointCount = 0                  ## start a new set of points with each file open.
     self.__currentIvSipmId = ''
     self.__currentIvSipmTestDate = ''
     self.__fileLine = []
     self.__fileLine = self.__inFile.readlines()  ## Read whole file here....
-    print("XXXX __sipm__::readIVfile: len(self.__fileLine) = %d \n") % (len(self.__fileLine))
+    print(("XXXX __sipm__::readIVfile: len(self.__fileLine) = %d \n") % (len(self.__fileLine)))
     for self.__newLine in self.__fileLine:
       if(self.__cmjDebug > 2): 
-	print("XXXX __sipm__::readIVfile::self.__newLine = %s  \n") % (self.__newLine)
-	print("XXXX __sipm__::self.__newLine.find('# File') = %sxx") % (self.__newLine.find('# File'))
+        print(("XXXX __sipm__::readIVfile::self.__newLine = %s  \n") % (self.__newLine))
+        print(("XXXX __sipm__::self.__newLine.find('# File') = %sxx") % (self.__newLine.find('# File')))
       if (self.__newLine.find('# File') == 0): 
-	  self.__currentIvSipmId = self.getIvSipmId(self.__newLine)
+        self.__currentIvSipmId = self.getIvSipmId(self.__newLine)
       if (self.__newLine.find('#-- created_time') == 0): 
-	  self.__currentIvSipmTestDate = self.getIvTestTime(self.__newLine)
+        self.__currentIvSipmTestDate = self.getIvTestTime(self.__newLine)
       if (self.__newLine.find('#') != 0):  # skip if "#" is found as first character...
-	if(self.__currentIvSipmId == ''):
-	  print("XXXX __sipm__::readIVfile:: self.__currentIvSipmId is null... exit program \n")
-	  break
-	if(self.__currentIvSipmTestDate == ''):
-	  print("XXXX __sipm__::readIVfile:: self.__currentIvSipmTestDate is null... exit program \n")
-	  break
-	self.getIV(self.__pointCount,self.__newLine)
-	self.__pointCount += 1
+        if(self.__currentIvSipmId == ''):
+          print("XXXX __sipm__::readIVfile:: self.__currentIvSipmId is null... exit program \n")
+          break
+        if(self.__currentIvSipmTestDate == ''):
+          print("XXXX __sipm__::readIVfile:: self.__currentIvSipmTestDate is null... exit program \n")
+          break
+        self.getIV(self.__pointCount,self.__newLine)
+        self.__pointCount += 1
     print("XXXX __sipm__::readIVfile: call self.sendIvMeasurmentsTodatabase()")
     self.sendIvMeasurmentsTodatabase()
     self.__inFile.close()  ## close the file
-    print("XXXX __sipm__::readIVfile: close file %s \n") % localFileName
+    print(("XXXX __sipm__::readIVfile: close file %s \n") % localFileName)
     print("XXXX __sipm__::readIVfile: exit")
 ## -----------------------------------------------------------------
-##	Method to extract the SiPM ID from the Iv file
+##      Method to extract the SiPM ID from the Iv file
   def getIvSipmId(self,tempLine):
       if(self.__cmjDebug > 2): 
-	print("XXXX __sipm__::getIvSipmId: enter")
-	print("XXXX __sipm__::getIvSipmId:: before tempLine = %s \n") % (tempLine)
+        print("XXXX __sipm__::getIvSipmId: enter")
+        print(("XXXX __sipm__::getIvSipmId:: before tempLine = %s \n") % (tempLine))
       self.__tempLine = tempLine
       self.__tempLine = self.__tempLine.replace('# File = "IV_','',1)
       self.__tempLine = self.__tempLine.replace('.cvs"','',1)
@@ -352,13 +365,13 @@ class sipm(object):
       self.__tempLine = self.__tempLine[0:26]
       self.__ivSipmId[self.__tempLine] = self.__tempLine
       if(self.__cmjDebug > 2): 
-	print("XXXX __sipm__::getIvSipmId:: self.__tempLine = xxx%sxxx \n") % (self.__tempLine)
-	print("XXXX __sipm__::getIvSipmId:: self.__ivSimpId[%s] = xxx%sxxx \n") % (self.__tempLine,self.__ivSipmId[self.__tempLine])
-	if(self.__cmjDebug > 2): print("XXXX __sipm__::getIvSipmId: exit\n")
+        print(("XXXX __sipm__::getIvSipmId:: self.__tempLine = xxx%sxxx \n") % (self.__tempLine))
+        print(("XXXX __sipm__::getIvSipmId:: self.__ivSimpId[%s] = xxx%sxxx \n") % (self.__tempLine,self.__ivSipmId[self.__tempLine]))
+        if(self.__cmjDebug > 2): print("XXXX __sipm__::getIvSipmId: exit\n")
       return self.__tempLine
 ##
 ## -----------------------------------------------------------------
-##	Method to extract the SiPM test time from the IV file
+##      Method to extract the SiPM test time from the IV file
   def getIvTestTime(self,tempLine):
       if(self.__cmjDebug > 2): print("XXXX __sipm__::getIvTestTime: enter \n")
       self.__tempLine = tempLine
@@ -367,11 +380,11 @@ class sipm(object):
       self.__tempLine = self.__tempLine.rstrip()
       self.__ivTestDate = self.__tempLine
       if(self.__cmjDebug > 2): 
-	print("XXXX __sipm__::sgetIvTestTime::self__ivTestDate = xxx%sxxx \n") % (self.__ivTestDate)
-	if(self.__cmjDebug > 2): print("XXXX __sipm__::getIvTestTime: exit\n")
+        print(("XXXX __sipm__::sgetIvTestTime::self__ivTestDate = xxx%sxxx \n") % (self.__ivTestDate))
+        if(self.__cmjDebug > 2): print("XXXX __sipm__::getIvTestTime: exit\n")
       return self.__ivTestDate
 ## -----------------------------------------------------------------
-##	Method to extract the IV values to be stored
+##      Method to extract the IV values to be stored
   def getIV(self,tempPoint,tempLine):
       if(self.__cmjDebug > 2): print("xx enter sipm::getIV")
       self__ivPair = []
@@ -381,8 +394,8 @@ class sipm(object):
       self.__ivVoltage[tempPoint] = float(self.__ivPair[0])
       self.__ivCurrent[tempPoint] = float(self.__ivPair[1])
       if(self.__cmjDebug > 3):
-	#print("  sipm.getIV:: self.__ivVoltage[%s][%s][%s] = %s | self.__ivCurrent[%s][%s][%s] = %s \n") % (tempPoint,self.__currentIvSipmId,self.__currentIvSipmTestDate,self.__ivVoltage[tempPoint][self.__currentIvSipmId][self.__currentIvSipmTestDate],tempPoint,self.__currentIvSipmId,self.__currentIvSipmTestDate,self.__ivCurrent[tempPoint][self.__currentIvSipmId][self.__currentIvSipmTestDate])
-	print("XXXX __sipm__::sipm.getIV:: self.__ivVolage[%s] = %s | self.__ivCurrent[%s] = %s ") % (tempPoint,self.__ivVoltage[tempPoint],tempPoint,self.__ivCurrent[tempPoint])
+        #print("  sipm.getIV:: self.__ivVoltage[%s][%s][%s] = %s | self.__ivCurrent[%s][%s][%s] = %s \n") % (tempPoint,self.__currentIvSipmId,self.__currentIvSipmTestDate,self.__ivVoltage[tempPoint][self.__currentIvSipmId][self.__currentIvSipmTestDate],tempPoint,self.__currentIvSipmId,self.__currentIvSipmTestDate,self.__ivCurrent[tempPoint][self.__currentIvSipmId][self.__currentIvSipmTestDate])
+        print(("XXXX __sipm__::sipm.getIV:: self.__ivVolage[%s] = %s | self.__ivCurrent[%s] = %s ") % (tempPoint,self.__ivVoltage[tempPoint],tempPoint,self.__ivCurrent[tempPoint]))
       if(self.__cmjDebug > 2): print("XXXX __sipm__::sipm.getIV: exit")
 ## -----------------------------------------------------------------
   def sendIvMeasurmentsTodatabase(self):
@@ -393,41 +406,45 @@ class sipm(object):
     for self.__localSipmIv in sorted(self.__ivPoint.keys()):
       self.__sipmIvString = self.buildString_for_SiPM_IV_table(self.__localSipmIv)
       if(self.__cmjDebug >= 1): 
-	  self.dumpString_for_SiPM_IV(self.__sipmIvString)
+        self.dumpString_for_SiPM_IV(self.__sipmIvString)
       if self.__sendToDatabase != 0:
-	print "XXXX __sipm__::send Local Iv Measurements to database!"
-	self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
-	## Use Steve's suggestion and load multiple lines (100 in this case) to be sent in one transaction... below.
-	if(self.__update == 0):
-	  self.__myDataLoader1.addRow(self.__sipmIvString)  ## use this to insert new entry
-	  ##cmj2019May09(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	else:
-	  self.__myDataLoader1.addRow(self.__sipmIvString,'update')
-	  ##cmj2019May09 (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	print "self.__sipmIvString = %s" % self.__sipmIvString
+        print("XXXX __sipm__::send Local Iv Measurements to database!")
+        self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
+        ## Use Steve's suggestion and load multiple lines (100 in this case) to be sent in one transaction... below.
+        if(self.__update == 0):
+          self.__myDataLoader1.addRow(self.__sipmIvString)  ## use this to insert new entry
+          ##cmj2019May09(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+        else:
+          self.__myDataLoader1.addRow(self.__sipmIvString,'update')
+          ##cmj2019May09 (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+        print("self.__sipmIvString = %s" % self.__sipmIvString)
       ## cmj2019May09... Use Steve's suggestion to send all I vs V values for one SiPM (100 lines) in one transaction (send).
     for n in range(0,self.__maxIVtries):
-	(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	time.sleep(self.__ivSleepTime) ## sleep so we don't send two records with the same timestamp!
-	if self.__retVal:				## success!  data sent to database
-	  if(self.__update == 0) :
-	    print "XXXX __sipm__::sendIvMeasurmentsTodatabase: "+self.__currentIvSipmId+" bin "+str(self.__ivPoint[self.__localSipmIv])+" DatabaseTransmission Success!!!"+" url = "+self.__url
-	  else:
-	    print "XXXX __sipm__::sendIvMeasurmentsTodatabase: "+self.__currentIvSipmId+" bin "+str(self.__ivPoint[self.__localSipmIv])+" Update DatabaseTransmission Success!!!"+" url = "+self.__url
-	  print self.__text
-	  break
-	elif self.__password == '':
-	  print('XXXX __sipm__::sendIvMeasurmentsTodatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	else:
-	  print "XXXX __sipm__::sendIvMeasurmentsTodatabase:  Database Transmission: Failed!!!"
-	  print self.__code
-	  print self.__text 
-    print("XXXX __sipm__::sendIvMeasurmentsTodatabase: exit \n")
+      (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+      time.sleep(self.__ivSleepTime) ## sleep so we don't send two records with the same timestamp!
+      if self.__retVal:                        ## success!  data sent to database
+        if(self.__update == 0) :
+          #print("XXXX __sipm__::sendIvMeasurmentsTodatabase: "+self.__currentIvSipmId+" bin "+str(self.__ivPoint[self.__localSipmIv])+" DatabaseTransmission Success!!!"+" url = "+self.__url)
+          tempString="XXXX __sipm__::sendIvMeasurmentsTodatabase: "+self.__currentIvSipmId+" bin "+str(self.__ivPoint[self.__localSipmIv])+" DatabaseTransmission Success!!!"+" url = "+self.__url
+          print(("%s") % (tempString))
+        else:
+          #print("XXXX __sipm__::sendIvMeasurmentsTodatabase: "+self.__currentIvSipmId+" bin "+str(self.__ivPoint[self.__localSipmIv])+" Update DatabaseTransmission Success!!!"+" url = "+self.__url)
+          tempString = "XXXX __sipm__::sendIvMeasurmentsTodatabase: "+self.__currentIvSipmId+" bin "+str(self.__ivPoint[self.__localSipmIv])+" Update DatabaseTransmission Success!!!"+" url = "+self.__url
+          print(("%s") % (tempString))
+        print(self.__text)
+        break
+      elif self.__password == '':
+        print(("%s")%('XXXX __sipm__::sendIvMeasurmentsTodatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+      else:
+        print(("%s") % ("XXXX __sipm__::sendIvMeasurmentsTodatabase:  Database Transmission: Failed!!!"))
+        print(self.__code)
+        print(self.__text) 
+    print(("%s") %("XXXX __sipm__::sendIvMeasurmentsTodatabase: exit \n"))
     return 0 ## success
 ## -----------------------------------------------------------------
   def buildString_for_SiPM_IV_table(self,tempKey):
     if(self.__cmjDebug > 1 ) : print("XXXX __sipm__::buildString_for_SiPM_IV_table: enter")
-    self.__sendIVrow = {}		## define empty dictionary
+    self.__sendIVrow = {}            ## define empty dictionary
     self.__sendIVrow['sipm_id'] = self.__currentIvSipmId
     self.__sendIVrow['measure_test_date'] = self.__currentIvSipmTestDate
     self.__sendIVrow['point'] = int(self.__ivPoint[tempKey])
@@ -438,14 +455,14 @@ class sipm(object):
     return(self.__sendIVrow)
 ##
   def dumpString_for_SiPM_IV(self,tempString):
-     print("XXXX __sipm__::dumpString_for_SiPM_IV: %s \n") %(tempString)
+     print(("XXXX __sipm__::dumpString_for_SiPM_IV: %s \n") %(tempString))
 ## -----------------------------------------------------------------
-##	End the set of methods are for the IV plot storage
+##      End the set of methods are for the IV plot storage
 ## -----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		I vs V... End
+##            I vs V... End
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -455,11 +472,11 @@ class sipm(object):
 ##
 ## -----------------------------------------------------------------
 ## -----------------------------------------------------------------   
-##	Accessor functions for the spreadsheet read/decode
+##      Accessor functions for the spreadsheet read/decode
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Purchase Orders... Begin
+##            Purchase Orders... Begin
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -483,7 +500,7 @@ class sipm(object):
 ## -----------------------------------------------------------------
   def storePoQuantityOrdered(self,temp):
     self.__item = temp.rsplit(',')
-    self.__poNumberQuantity = self.__item[1]			
+    self.__poNumberQuantity = self.__item[1]                  
 ## -----------------------------------------------------------------
   def storePoOrderDate(self,temp):
     self.__item = temp.rsplit(',')
@@ -495,10 +512,17 @@ class sipm(object):
 ## -----------------------------------------------------------------
   def storeBatchNumber(self,temp):
     self.__item = temp.rsplit(',')
+    if(self.__cmjDebug > 7): print(("XXXX__sipm__::storeBatchNumber self.__item = %s") % (self.__item))
     del self.__item[0]
+    if(self.__cmjDebug > 7): print(("XXXX__sipm__::storeBatchNumber self.__item = %s") % (self.__item))
     for m in self.__item:
       if (m != ''): self.__batchNumber[m] = m
-    del self.__batchNumber['\r\n']
+      if(self.__cmjDebug > 7): print(("XXXX__sipm__::storeBatchNumber m = %s") % (m))
+    if(self.__cmjDebug > 7) : print(("XXXX_simp__:storeBatchNumber self.__batchNumber.keys() %s") % (self.__batchNumber.keys()))
+    try: 
+      del self.__batchNumber['\n']
+    except:
+      return
 ## -----------------------------------------------------------------
   def storeBatchWorker(self,tempInput):
     self.__item = tempInput.rsplit(',') 
@@ -536,54 +560,55 @@ class sipm(object):
 ## -----------------------------------------------------------------
 ## -----------------------------------------------------------------
 ## ----------------------------------------------------------------
-##	Methods to setup access to the database
-##	These methods are structured in triplets...
-##		The first method sends the string to the database
-##		The second method builds the string that is sent to the database
-##		The third method dumps the string (as a diagnositc)
+##      Methods to setup access to the database
+##      These methods are structured in triplets...
+##            The first method sends the string to the database
+##            The second method builds the string that is sent to the database
+##            The third method dumps the string (as a diagnositc)
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Purchase Orders... Begin
+##            Purchase Orders... Begin
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
-##	Purchase orders
+##      Purchase orders
   def sendPoNumberToDatabase(self):
     self.__group = "SiPM Tables"
     self.__sipmTable = "sipm_purchase_orders"
     #####self.__user = "merrill (SLF6.6:GUI)"
     self.__sipmPoString = self.buildRowString_for_SiPM_Po_table()
     if(self.__cmjDebug >= 1): 
-	print ("XXXX __sipm__::sendPoNumberToDatabase: self.__sipmPoString = %s") % (self.__sipmPoString)
-	self.dumpString_for_Sipm_Po_table(self.__sipmPoString)
-	print ("XXXX __sipm__::sendPoNumberToDatabase: self.__whichDatabase = %s | self.__url = %s ") % (self.__whichDatabase, self.__url)
+      print(("XXXX __sipm__::sendPoNumberToDatabase: self.__sipmPoString = %s") % (self.__sipmPoString))
+      self.dumpString_for_Sipm_Po_table(self.__sipmPoString)
+      print(("XXXX __sipm__::sendPoNumberToDatabase: self.__whichDatabase = %s | self.__url = %s ") % (self.__whichDatabase, self.__url))
     if self.__sendToDatabase != 0:
-      print "send PO to database!!!"
+      print("send PO to database!!!")
       self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
       if(self.__update == 0):
-	self.__myDataLoader1.addRow(self.__sipmPoString) ## use this to insert new entry
-	(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+        self.__myDataLoader1.addRow(self.__sipmPoString) ## use this to insert new entry
+        (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
       else:
-	self.__myDataLoader1.addRow(self.__sipmPoString,'update') ## use this to update existing entry
-	(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-      print "self.__text = %s" % self.__text
+        print("XXXX__sipm__::sendPoNumberToDatabase: UPDATE MODE")
+        self.__myDataLoader1.addRow(self.__sipmPoString,'update') ## use this to update existing entry
+        (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+      print("self.__text = %s" % self.__text)
       time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-      if self.__retVal:				## sucess!  data sent to database
-	print "XXXX __sipm__::sendPoNumberToDatabase: Sipm PO Transmission Success!!!"
-	print self.__text
+      if self.__retVal:                        ## sucess!  data sent to database
+        print("XXXX __sipm__::sendPoNumberToDatabase: Sipm PO Transmission Success!!!")
+        print(self.__text)
       elif self.__password == '':
-	print('XXXX __sipm__::sendPoNumberToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
+        print(("%s") % ('XXXX __sipm__::sendPoNumberToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
       else:
-##		Purchase Orderss
-	print "XXXX __sipm__::sendPoNumberToDatabase:  Sipm PO Transmission: Failed!!!"
-	print self.__code
-	print self.__text 
-	return 1		## problem with transmission!   communicate failure\
+##            Purchase Orderss
+        print(("%s") %("XXXX __sipm__::sendPoNumberToDatabase:  Sipm PO Transmission: Failed!!!"))
+        print(self.__code)
+        print(self.__text) 
+        return 1            ## problem with transmission!   communicate failure\
     return 0  ## success
 ## ----------------------------------------------------------------
   def buildRowString_for_SiPM_Po_table(self):
@@ -594,13 +619,13 @@ class sipm(object):
     return self.__sendSipmPo
 ## ----------------------------------------------------------------
   def dumpString_for_Sipm_Po_table(self,tempString):
-    print "XXXX __sipm__::dumpString_for_Sipm_Po_table.... Dump string sent to database "
-    print "%s \n" % tempString
+    print("XXXX __sipm__::dumpString_for_Sipm_Po_table.... Dump string sent to database ")
+    print("%s \n" % tempString)
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Purchase Orders... End
+##            Purchase Orders... End
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -611,12 +636,12 @@ class sipm(object):
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Received Purchase Orders (Batches)... Begin
+##            Received Purchase Orders (Batches)... Begin
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
-##	Send Received Purchase orders to database
+##      Send Received Purchase orders to database
   def sendReceivedPoToDatabase(self):
     self.__group = "SiPM Tables"
     self.__sipmTable = "sipm_batches"
@@ -627,29 +652,29 @@ class sipm(object):
       ### Must load the batch table first!
       self.__sipmBatchString = self.buildString_for_SiPM_ReceivedPo_table(self.__localSipmBatch)
       if(self.__cmjDebug >= 1): 
-	self.dumpString_for_receivedPo(self.__sipmBatchString,self.__firstCall)
-	self.__firstCall += 1
+        self.dumpString_for_receivedPo(self.__sipmBatchString,self.__firstCall)
+        self.__firstCall += 1
       if self.__sendToDatabase != 0:
-	print "send Po Received to database!"
-	self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
-	if(self.__update == 0):
-	  self.__myDataLoader1.addRow(self.__sipmBatchString) ## use this to insert new entry
-	  (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	else:
-	  self.__myDataLoader1.addRow(self.__sipmBatchString,'update')  ## use this to update existing entry
-	  (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	print "self.__text = %s" % self.__text
-	time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	if self.__retVal:				## sucess!  data sent to database
-	  print "XXXX __sipm__::sendReceivedPoToDatabase: Sipm PO Transmission Success!!!"
-	  print self.__text
-	elif self.__password == '':
-	  print('XXXX __sipm__::sendReceivedPoToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	else:
-	  print "XXXX __sipm__::sendReceivedPoToDatabase:  Sipm PO Transmission: Failed!!!"
-	  print self.__code
-	  print self.__text 
-	  return 1		## problem with transmission!   communicate failure
+        print("send Po Received to database!")
+        self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
+        if(self.__update == 0):
+          self.__myDataLoader1.addRow(self.__sipmBatchString) ## use this to insert new entry
+          (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+        else:
+          self.__myDataLoader1.addRow(self.__sipmBatchString,'update')  ## use this to update existing entry
+          (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+        print("self.__text = %s" % self.__text)
+        time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+        if self.__retVal:                        ## sucess!  data sent to database
+          print(("%s") %("XXXX __sipm__::sendReceivedPoToDatabase: Sipm PO Transmission Success!!!"))
+          print(self.__text)
+        elif self.__password == '':
+          print(("%s") % ('XXXX __sipm__::sendReceivedPoToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+        else:
+          print(("%s") % ("XXXX __sipm__::sendReceivedPoToDatabase:  Sipm PO Transmission: Failed!!!"))
+          print(self.__code)
+          print(self.__text) 
+          return 1            ## problem with transmission!   communicate failure
     return 0  ## success
 ## ----------------------------------------------------------------
   def buildString_for_SiPM_ReceivedPo_table(self,tempKey):
@@ -664,14 +689,14 @@ class sipm(object):
 ## ----------------------------------------------------------------
   def dumpString_for_receivedPo(self,tempString,firstCall):
     if(firstCall == 0):
-      print "XXXX __sipm__::dumpString_for_receivedPo.... Dump string sent to database "
-      print "  Send Po Received to database \n"
-    print "%s \n" % tempString
+      print("XXXX __sipm__::dumpString_for_receivedPo.... Dump string sent to database ")
+      print("  Send Po Received to database \n")
+    print("%s \n" % tempString)
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Received Purchase Orders (Batches)... End
+##            Received Purchase Orders (Batches)... End
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -682,14 +707,14 @@ class sipm(object):
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Sipms... Begin
+##            Sipms... Begin
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
-##	Store the Sipm table quantities
+##      Store the Sipm table quantities
   def storeSipmTableQuantities(self,tempLine):
-    if(self.__cmjDebug > 1): print("XXXX __sipm__::::storeSipmTableQuantities: enter -- tempLine = %s ") %(tempLine)
+    if(self.__cmjDebug > 1): print(("XXXX __sipm__::::storeSipmTableQuantities: enter -- tempLine = %s ") %(tempLine))
     self.__item = []
     self.__item = tempLine.rsplit(',')
     self.__tempSipmId = self.__item[0]
@@ -704,15 +729,15 @@ class sipm(object):
     self.__vend_institution[self.__tempSipmId] = self.__tempSipmLocation
     self.__packNumber[self.__tempSipmId] = self.__tempSipmPackNumber
     if(self.__cmjDebug > 1):
-      print("XXXX __sipm__::::storeSipmTableQuantities: self.__serialNumber[%s] = %s") % (self.__tempSipmId,self.__serialNumber[self.__tempSipmId])
-      print("XXXX __sipm__::::storeSipmTableQuantities: self.__sipmBatch[%s] = %s") % (self.__tempSipmId,self.__sipmBatch[self.__tempSipmId])
-      print("XXXX __sipm__::::storeSipmTableQuantities: self.__sipm_type[%s] = %s") % (self.__tempSipmId,self.__sipm_type[self.__tempSipmId])
-      print("XXXX __sipm__::::storeSipmTableQuantities: self.__packNumber[%s] = %s") % (self.__tempSipmId,self.__packNumber[self.__tempSipmId])
-      print("XXXX __sipm__::::storeSipmTableQuantities: self.__vend_institution[%s] = %s") % (self.__tempSipmId,self.__vend_institution[self.__tempSipmId])
-      print("XXXX __sipm__::::storeSipmTableQuantities: self.__sipmLocalInstitution = XX%sXX \n") % (self.__sipmLocalInstitution)
+      print(("XXXX __sipm__::::storeSipmTableQuantities: self.__serialNumber[%s] = %s") % (self.__tempSipmId,self.__serialNumber[self.__tempSipmId]))
+      print(("XXXX __sipm__::::storeSipmTableQuantities: self.__sipmBatch[%s] = %s") % (self.__tempSipmId,self.__sipmBatch[self.__tempSipmId]))
+      print(("XXXX __sipm__::::storeSipmTableQuantities: self.__sipm_type[%s] = %s") % (self.__tempSipmId,self.__sipm_type[self.__tempSipmId]))
+      print(("XXXX __sipm__::::storeSipmTableQuantities: self.__packNumber[%s] = %s") % (self.__tempSipmId,self.__packNumber[self.__tempSipmId]))
+      print(("XXXX __sipm__::::storeSipmTableQuantities: self.__vend_institution[%s] = %s") % (self.__tempSipmId,self.__vend_institution[self.__tempSipmId]))
+      print(("XXXX __sipm__::::storeSipmTableQuantities: self.__sipmLocalInstitution = XX%sXX \n") % (self.__sipmLocalInstitution))
       print("XXXX __sipm__::::storeSipmTableQuantities: exit")
 ## --------------------------------------------------------------
-##	Send Sipm Id's to database
+##      Send Sipm Id's to database
   def sendSipmIdsToDatabase(self):
     self.__group = "SiPM Tables"
     self.__sipmTable = "sipms"
@@ -720,49 +745,54 @@ class sipm(object):
     self.__firstCall = 0
     for self.__localSipmId in sorted(self.__serialNumber.keys()):
       if(self.__cmjDebug != 0): 
-	  print ("XXXX __sipm__::sendSipmIdsToDatabase: self.__localSipmId = %s") % (self.__localSipmId)
-	  print ("XXXX __sipm__::sendSipmIdsToDatabase: self.__whichDatabase = %s | self.__url = %s") % (self.__whichDatabase,self.__url)
+        print(("XXXX __sipm__::sendSipmIdsToDatabase: self.__localSipmId = %s") % (self.__localSipmId))
+        print(("XXXX __sipm__::sendSipmIdsToDatabase: self.__whichDatabase = %s | self.__url = %s") % (self.__whichDatabase,self.__url))
       ### Must load the batch table first!
       self.__sipmIdString = self.buildString_for_SipmIdTable(self.__localSipmId)
       if(self.__cmjDebug >= 1): 
-	self.dumpString_for_SipmIdTable(self.__sipmIdString,self.__firstCall)
-	self.__firstCall += 1
+        self.dumpString_for_SipmIdTable(self.__sipmIdString,self.__firstCall)
+        self.__firstCall += 1
       if self.__sendToDatabase != 0:
-	print "send Sipm Id's to database!"
-	self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
-	if(self.__update == 0):
-	  self.__myDataLoader1.addRow(self.__sipmIdString) #sendToDevelopmentDatabase# use this to insert new entry
-	  for n in range(0,self.__maxTries):
-	    (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	    print "self.__text = %s" % self.__text
-	    time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	    if self.__retVal:				## sucess!  data sent to database
-	      print "XXXX __sipm__::sendSipmIdsToDatabase: "+self.__serialNumber[self.__localSipmId]+" -pack number: "+self.__packNumber[self.__localSipmId]+" Transmission Success!!!"+" url = "+self.__url
-	      print self.__text
-	      break;
-	    elif self.__password == '':
-	      print('XXXX __sipm__::sendSipmIdsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	    else:
-	      print "XXXX __sipm__::sendSipmIdsToDatabase:  Database Transmission: Failed!!!"
-	      print self.__code
-	      print self.__text 
-	else:
-	  self.__myDataLoader1.addRow(self.__sipmIdString,'update')  ## use this to update existing entry
-	  for n in range(0,self.__maxTries):
-	    (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	    print "self.__text = %s" % self.__text
-	    time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	    if self.__retVal:				## sucess!  data sent to database
-	      print "XXXX __sipm__::sendSipmIdsToDatabase: "+self.__serialNumber[self.__localSipmId]+" -pack number: "+self.__packNumber[self.__localSipmId]+" Updated Database Transmission Success!!!"+" url = "+self.__url
-	      print self.__text
-	      break;
-	    elif self.__password == '':
-	      print('XXXX __sipm__::sendSipmIdsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	    else:
-	      print "XXXX __sipm__::sendSipmIdsToDatabase:  Database Transmission: Failed!!!"
-	      print self.__code
-	      print self.__text 
-	  #return 1		## problem with transmission!   communicate failure
+        print("send Sipm Id's to database!")
+        if(self.__cmjDebug > 7) : print(("XXXX __sipm__::sendSipmIdsToDatabase:self.__sipmIdString = %s") % (self.__sipmIdString))
+        self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
+        if(self.__update == 0):
+          self.__myDataLoader1.addRow(self.__sipmIdString) #sendToDevelopmentDatabase# use this to insert new entry
+          for n in range(0,self.__maxTries):
+            (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+            print("self.__text = %s" % self.__text)
+            time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+            if self.__retVal:                        ## sucess!  data sent to database
+              #print("XXXX __sipm__::sendSipmIdsToDatabase: "+self.__serialNumber[self.__localSipmId]+" -pack number: "+self.__packNumber[self.__localSipmId]+" Transmission Success!!!"+" url = "+self.__url)
+              tempString = "XXXX __sipm__::sendSipmIdsToDatabase: "+self.__serialNumber[self.__localSipmId]+" -pack number: "+self.__packNumber[self.__localSipmId]+" Transmission Success!!!"+" url = "+self.__url
+              print(("%s") % (tempString))
+              print(self.__text)
+              break;
+            elif self.__password == '':
+              print(("%s") %('XXXX __sipm__::sendSipmIdsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+            else:
+              print(("%s") % "XXXX __sipm__::sendSipmIdsToDatabase:  Database Transmission: Failed!!!")
+              print(self.__code)
+              print(self.__text) 
+        else:
+          self.__myDataLoader1.addRow(self.__sipmIdString,'update')  ## use this to update existing entry
+          for n in range(0,self.__maxTries):
+            (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+            print("self.__text = %s" % self.__text)
+            time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+            if self.__retVal:                        ## sucess!  data sent to database
+              #print("XXXX __sipm__::sendSipmIdsToDatabase: "+self.__serialNumber[self.__localSipmId]+" -pack number: "+self.__packNumber[self.__localSipmId]+" Updated Database Transmission Success!!!"+" url = "+self.__url)
+              tempString = "XXXX __sipm__::sendSipmIdsToDatabase: "+self.__serialNumber[self.__localSipmId]+" -pack number: "+self.__packNumber[self.__localSipmId]+" Updated Database Transmission Success!!!"+" url = "+self.__url
+              print(("%s") % (tempString))
+              print(self.__text)
+              break;
+            elif self.__password == '':
+              print(("%s") % ('XXXX __sipm__::sendSipmIdsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+            else:
+              print(("%s") % ("XXXX __sipm__::sendSipmIdsToDatabase:  Database Transmission: Failed!!!"))
+              print(self.__code)
+              print(self.__text) 
+        #return 1            ## problem with transmission!   communicate failure
     return 0   ## success
 ## -----------------------------------------------------------------
   def buildString_for_SipmIdTable(self,vendKey):
@@ -778,46 +808,46 @@ class sipm(object):
 ## ----------------------------------------------------------------
   def dumpString_for_SipmIdTable(self,tempString, firstCall):
     if (firstCall == 0):
-      print "XXXX __sipm__::dumpString_for_SipmIdTable.... Dump string sent to database "
-      print "  Send Sipm Id's to database"
-    print "%s \n" % tempString
+      print("XXXX __sipm__::dumpString_for_SipmIdTable.... Dump string sent to database ")
+      print("  Send Sipm Id's to database")
+    print("%s \n" % tempString)
 ##   
 ## ---------------------------------------------------------------
 ## Send pack number to databaseConfig
 ## --------------------------------------------------------------
-##	Send Sipm Id's to database
+##      Send Sipm Id's to database
   def sendPackNumberToDatabase(self):
     self.__group = "SiPM Tables"
     self.__sipmTable = "sipms"
     self.__firstCall = 0
     for self.__localSipmId in sorted(self.__serialNumber.keys()):
       if(self.__cmjDebug != 0): 
-	  print ("XXXX __sipm__::sendPackNumberToDatabase: self.__localSipmId = %s") % (self.__localSipmId)
-	  print ("XXXX __sipm__::sendPackNumberToDatabase: self.__whichDatabase = %s | self.__url = %s") % (self.__whichDatabase,self.__url)
+        print(("XXXX __sipm__::sendPackNumberToDatabase: self.__localSipmId = %s") % (self.__localSipmId))
+        print(("XXXX __sipm__::sendPackNumberToDatabase: self.__whichDatabase = %s | self.__url = %s") % (self.__whichDatabase,self.__url))
       ### Must load the batch table first!
       self.__sipmIdString = self.buildString_for_SipmPackNumber(self.__localSipmId)
       if(self.__cmjDebug >= 1): 
-	self.dumpString_for_SipmPackNumber(self.__sipmIdString,self.__firstCall)
-	self.__firstCall += 1
+        self.dumpString_for_SipmPackNumber(self.__sipmIdString,self.__firstCall)
+        self.__firstCall += 1
       if self.__sendToDatabase != 0:
-	print "send Sipm Pack Number to database!"
-	self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
-	## Sipm record is already in the database... so we must update the line
-	self.__myDataLoader1.addRow(self.__sipmIdString,'update')  ## use this to update existing entry
-	for n in range(0,self.__maxTries):
-	  (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	  print "self.__text = %s" % self.__text
-	  time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	  if self.__retVal:				## sucess!  data sent to database
-	    print "XXXX __sipm__::sendPackNumberToDatabase: DatabaseTransmission Success!!!"
-	    print self.__text
-	    break;
-	  elif self.__password == '':
-	    print('XXXX __sipm__::sendPackNumberToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	  else:
-	    print "XXXX __sipm__::sendPackNumberToDatabase:  Database Transmission: Failed!!!"
-	    print self.__code
-	    print self.__text 
+        print("send Sipm Pack Number to database!")
+        self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
+        ## Sipm record is already in the database... so we must update the line
+        self.__myDataLoader1.addRow(self.__sipmIdString,'update')  ## use this to update existing entry
+        for n in range(0,self.__maxTries):
+          (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+          print("self.__text = %s" % self.__text)
+          time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+          if self.__retVal:                        ## sucess!  data sent to database
+            print("XXXX __sipm__::sendPackNumberToDatabase: DatabaseTransmission Success!!!")
+            print(self.__text)
+            break;
+          elif self.__password == '':
+            print(('XXXX __sipm__::sendPackNumberToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+          else:
+            print("XXXX __sipm__::sendPackNumberToDatabase:  Database Transmission: Failed!!!")
+            print(self.__code)
+            print(self.__text) 
     return 0   ## success
 ## -----------------------------------------------------------------
   def buildString_for_SipmPackNumber(self,vendKey):
@@ -828,9 +858,9 @@ class sipm(object):
 ## ----------------------------------------------------------------
   def dumpString_for_SipmPackNumber(self,tempString, firstCall):
     if (firstCall == 0):
-      print "XXXX __sipm__::dumpString_for_SipmIdTable.... Dump string sent to database "
-      print "  Send Sipm Id's to database"
-    print "%s \n" % tempString
+      print("XXXX __sipm__::dumpString_for_SipmIdTable.... Dump string sent to database ")
+      print("  Send Sipm Id's to database")
+    print("%s \n" % tempString)
 
 
 
@@ -838,7 +868,7 @@ class sipm(object):
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Sipms... End
+##            Sipms... End
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -847,57 +877,57 @@ class sipm(object):
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Local Measurements...  Begin
+##            Local Measurements...  Begin
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
-##	Decode and store the locally conducted test date!
+##      Decode and store the locally conducted test date!
   def storeLocalTestDate(self,tempDate):
-    if(self.__cmjDebug > 1): print("XXXX __sipm__::::storeLocalTestDate: enter -- tempDate = %s") % (tempDate)
+    if(self.__cmjDebug > 1): print(("XXXX __sipm__::::storeLocalTestDate: enter -- tempDate = %s") % (tempDate))
     self.__sipmLocalTestDate = tempDate
     self.__sipmLocalTestDate = self.__sipmLocalTestDate.replace('Test_Date ','',1)
     self.__sipmLocalTestDate = self.__sipmLocalTestDate.replace(',','',12)
     self.__sipmLocalTestDate = self.__sipmLocalTestDate.lstrip()
     self.__sipmLocalTestDate = self.__sipmLocalTestDate.rstrip()
     if(self.__cmjDebug > 1): 
-      print("XXXX __sipm__::::storeLocalTestDate: self.__sipmLocalTestDate = XX%sXX \n") % (self.__sipmLocalTestDate)
+      print(("XXXX __sipm__::::storeLocalTestDate: self.__sipmLocalTestDate = XX%sXX \n") % (self.__sipmLocalTestDate))
       print("XXXX __sipm__::::storeLocalTestDate: exit")
 ## -----------------------------------------------------------------
-##	Decode and store the locally conducted test institution!
+##      Decode and store the locally conducted test institution!
   def storeLocalInstitution(self,tempInstitution):
-    if(self.__cmjDebug > 1): print("XXXX __sipm__::::storeLocalInstitution: enter -- tempInstitution = %s ") %(tempInstitution)
+    if(self.__cmjDebug > 1): print(("XXXX __sipm__::::storeLocalInstitution: enter -- tempInstitution = %s ") %(tempInstitution))
     self.__sipmLocalInstitution = tempInstitution
     self.__sipmLocalInstitution = self.__sipmLocalInstitution.replace('Institution  ','',1)
     self.__sipmLocalInstitution = self.__sipmLocalInstitution.replace(',','',12)
     self.__sipmLocalInstitution = self.__sipmLocalInstitution.lstrip()
     self.__sipmLocalInstitution = self.__sipmLocalInstitution.rstrip()
     if(self.__cmjDebug > 1): 
-      print("XXXX __sipm__::::storeLocalInstitution: self.__sipmLocalInstitution = XX%sXX \n") % (self.__sipmLocalInstitution)
+      print(("XXXX __sipm__::::storeLocalInstitution: self.__sipmLocalInstitution = XX%sXX \n") % (self.__sipmLocalInstitution))
       print("XXXX __sipm__::::storeLocalInstitution: exit")
 ## -----------------------------------------------------------------
-##	Decode and store the locally conducted test worker!
+##      Decode and store the locally conducted test worker!
   def storeLocalWorker(self,tempLocalWorker):
-    if(self.__cmjDebug > 1): print("XXXX __sipm__::::storeLocalWorker: enter -- tempLocalWorker = %s") % (tempLocalWorker)
+    if(self.__cmjDebug > 1): print(("XXXX __sipm__::::storeLocalWorker: enter -- tempLocalWorker = %s") % (tempLocalWorker))
     self.__sipmLocalWorker = tempLocalWorker
     self.__sipmLocalWorker = self.__sipmLocalWorker.replace('Worker ','',1)
     self.__sipmLocalWorker = self.__sipmLocalWorker.replace(',','',12)
     self.__sipmLocalWorker = self.__sipmLocalWorker.lstrip()
     self.__sipmLocalWorker = self.__sipmLocalWorker.rstrip()
     if(self.__cmjDebug > 1): 
-      print("XXXX __sipm__::::storeLocalWorker: self.__sipmLocalWorker = XX%sXX \n") % (self.__sipmLocalWorker)
+      print(("XXXX __sipm__::::storeLocalWorker: self.__sipmLocalWorker = XX%sXX \n") % (self.__sipmLocalWorker))
       print("XXXX __sipm__::::storeLocalWorker: exit")
 ## -----------------------------------------------------------------
-##	Decode and store the locally conducted test worker!
+##      Decode and store the locally conducted test worker!
   def storeLocalWorkstation(self,tempLocalWorkstation):
-    if(self.__cmjDebug > 1): print("XXXX __sipm__::::storeLocalWorkstation: enter --- tempLocalWorkstation = %s") % (tempLocalWorkstation)
+    if(self.__cmjDebug > 1): print(("XXXX __sipm__::::storeLocalWorkstation: enter --- tempLocalWorkstation = %s") % (tempLocalWorkstation))
     self.__sipmLocalWorkstation = tempLocalWorkstation
     self.__sipmLocalWorkstation = self.__sipmLocalWorkstation.replace('WorkStation ','',1)
     self.__sipmLocalWorkstation = self.__sipmLocalWorkstation.replace(',','',12)
     self.__sipmLocalWorkstation = self.__sipmLocalWorkstation.lstrip()
     self.__sipmLocalWorkstation = self.__sipmLocalWorkstation.rstrip()
     if(self.__cmjDebug > 1): 
-      print("XXXX __sipm__::::storeLocalWorkstation: self.__sipmLocalWorkstation = XX%sXX \n") % (self.__sipmLocalWorkstation)
+      print(("XXXX __sipm__::::storeLocalWorkstation: self.__sipmLocalWorkstation = XX%sXX \n") % (self.__sipmLocalWorkstation))
       print("XXXX __sipm__::::storeLocalWorkstation: exit")
 ## -----------------------------------------------------------------
 ## Decode the local Sipm measurements on comma-separated-filet.
@@ -906,7 +936,7 @@ class sipm(object):
   def storeSipmLocalMeasurement(self,tempSipm):
     if(self.__cmjDebug > 1): print("XXXX __sipm__::storeSipmLocalMeasurement: enter")
     self.__item = tempSipm.rsplit(',')
-    print("tempSipm = %s \n") %(tempSipm)
+    print(("tempSipm = %s \n") %(tempSipm))
     self.__serialNumber[self.__item[0]] = self.__item[0]
     self.__local_testDate[self.__item[0]] = self.__sipmLocalTestDate
     self.__sipmBatch[self.__item[0]] = 1
@@ -943,58 +973,62 @@ class sipm(object):
     self.__group = "SiPM Tables"
     self.__sipmTable = "sipm_measure_tests"
     self.__firstCall = 0
-    print("XXXX __sipm__::::sendSipmLocalMeasToDatabase: = %s \n") % (len(self.__serialNumber.keys()))
+    print(("XXXX __sipm__::::sendSipmLocalMeasToDatabase: = %s \n") % (len(list(self.__serialNumber.keys()))))
     for self.__localSipmMeas in sorted(self.__serialNumber.keys()):
       self.__sipmLocMeasString = self.buildString_for_SiPM_LocalValues_table(self.__localSipmMeas)
       if(self.__cmjDebug > 1): 
-	  self.dumpString_for_SiPM_LocalValue(self.__sipmLocMeasString,self.__firstCall)
-	  self.__firstCall += 1
+        self.dumpString_for_SiPM_LocalValue(self.__sipmLocMeasString,self.__firstCall)
+        self.__firstCall += 1
       if self.__sendToDatabase != 0:
-	print "send Local Measurements to database!"
-	self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
-	## Use one of the two lines below... for insert new line, or to update existing line
-	if(self.__update == 0):
-	  self.__myDataLoader1.addRow(self.__sipmLocMeasString)  ## use this to insert new entry
-	  #(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	  for n in range(0,self.__maxTries):		## 2019May7... multiple tries to send to database
-	    (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	    print "self.__text = %s" % self.__text
-	    time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	    if self.__retVal:				## success!  data sent to database
-	      print "XXXX __sipm__::sendSipmLocalMeasToDatabase: SiPMid: "+self.__localSipmMeas+" Database Transmission Success!!!"
-	      print self.__text
-	      break
-	    elif self.__password == '':
-	      print('XXXX __sipm__::sendSipmLocalMeasToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	    else:
-	      print "XXXX __sipm__::sendSipmLocalMeasToDatabase:  Database Transmission: Failed!!!"
-	      print self.__code
-	      print self.__text
-	  self.sendSipmStatusToDatabase(self.__localSipmMeas)  ## send the overall Sipm status to the database
-	else:
-	  self.__myDataLoader1.addRow(self.__sipmLocMeasString,'update')  ## use this to update existing entry
-	  #(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	  for n in range(0,self.__maxTries):		## 2019May7... multiple tries to send to database
-	    (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	    print "self.__text = %s" % self.__text
-	    time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	    if self.__retVal:				## success!  data sent to database
-	      print "XXXX __sipm__::sendSipmLocalMeasToDatabase: SiPMid: "+self.__localSipmMeas+" Update Database Transmission Success!!!"
-	      print self.__text
-	      break
-	    elif self.__password == '':
-	      print('XXXX __sipm__::sendSipmLocalMeasToDatabase: Update Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	    else:
-	      print "XXXX __sipm__::sendSipmLocalMeasToDatabase:  Database Transmission: Failed!!!"
-	      print self.__code
-	      print self.__text 
-	  self.sendSipmStatusToDatabase(self.__localSipmMeas)  ## send the overall Sipm status to the database
-    if(self.__cmjDebug > 1): print("XXXX __sipm__::sendSipmLocalMeasToDatabase: exit")
+        print("send Local Measurements to database!")
+        self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
+        ## Use one of the two lines below... for insert new line, or to update existing line
+        if(self.__update == 0):
+          self.__myDataLoader1.addRow(self.__sipmLocMeasString)  ## use this to insert new entry
+          #(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+          for n in range(0,self.__maxTries):            ## 2019May7... multiple tries to send to database
+            (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+            print("self.__text = %s" % self.__text)
+            time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+            if self.__retVal:                        ## success!  data sent to database
+              #print("XXXX __sipm__::sendSipmLocalMeasToDatabase: SiPMid: "+self.__localSipmMeas+" Database Transmission Success!!!")
+              tempString = "XXXX __sipm__::sendSipmLocalMeasToDatabase: SiPMid: "+self.__localSipmMeas+" Database Transmission Success!!!"
+              print(("%s") % (tempString))
+              print(self.__text)
+              break
+            elif self.__password == '':
+              print(("%s") % ('XXXX __sipm__::sendSipmLocalMeasToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+            else:
+              print(("%s") % "XXXX __sipm__::sendSipmLocalMeasToDatabase:  Database Transmission: Failed!!!")
+              print(self.__code)
+              print(self.__text)
+          self.sendSipmStatusToDatabase(self.__localSipmMeas)  ## send the overall Sipm status to the database
+        else:
+          self.__myDataLoader1.addRow(self.__sipmLocMeasString,'update')  ## use this to update existing entry
+          #(self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+          for n in range(0,self.__maxTries):            ## 2019May7... multiple tries to send to database
+            (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+            print("self.__text = %s" % self.__text)
+            time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+            if self.__retVal:                        ## success!  data sent to database
+              #print("XXXX __sipm__::sendSipmLocalMeasToDatabase: SiPMid: "+self.__localSipmMeas+" Update Database Transmission Success!!!")
+              tempString = "XXXX __sipm__::sendSipmLocalMeasToDatabase: SiPMid: "+self.__localSipmMeas+" Update Database Transmission Success!!!"
+              print(("%s") % (tempString))
+              print(self.__text)
+              break
+            elif self.__password == '':
+              print(("%s") % ('XXXX __sipm__::sendSipmLocalMeasToDatabase: Update Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+            else:
+              print(("%s") % ("XXXX __sipm__::sendSipmLocalMeasToDatabase:  Database Transmission: Failed!!!"))
+              print(self.__code)
+              print(self.__text) 
+          self.sendSipmStatusToDatabase(self.__localSipmMeas)  ## send the overall Sipm status to the database
+    if(self.__cmjDebug > 1): print(("%s") % ("XXXX __sipm__::sendSipmLocalMeasToDatabase: exit"))
     return 0 ## success
 ##-----------------------------------------------------------------
 ## This method builds the table for the local Sipm test results...
   def buildString_for_SiPM_LocalValues_table(self,tempKey):
-    self.__sendSipmRow = {}		## define empty dictionary
+    self.__sendSipmRow = {}            ## define empty dictionary
     self.__sendSipmRow['sipm_id'] = self.__serialNumber[tempKey]
     self.__sendSipmRow['test_type'] = 'measured'
     self.__sendSipmRow['worker_barcode'] =  self.__local_worker[tempKey]
@@ -1019,12 +1053,12 @@ class sipm(object):
 ## ----------------------------------------------------------------
   def dumpString_for_SiPM_LocalValue(self,tempString,firstCall):
     if(firstCall == 0):
-      print "XXXX __sipm__::dumpString_for_SiPM_LocalValue"
-    print "%s \n" % tempString
+      print("XXXX __sipm__::dumpString_for_SiPM_LocalValue")
+    print("%s \n" % tempString)
 ##-----------------------------------------------------------------
-##	Send the overall Sipm status (green, yellow or red)
-##	determined from the local test results
-## 	to the Sipm Table...
+##      Send the overall Sipm status (green, yellow or red)
+##      determined from the local test results
+##       to the Sipm Table...
   def sendSipmStatusToDatabase(self,tempKey):
     if(self.__cmjDebug > 1): print("XXXX __sipm__::sendSipmStatusToDatabase: enter")
     self.__group = "SiPM Tables"
@@ -1043,26 +1077,26 @@ class sipm(object):
     self.__sendSipmStatus['batch_number'] = self.__sipmTableInformation[0]
     self.__sendSipmStatus['po_number'] = self.__sipmTableInformation[1]
     if(self.__cmjDebug > 1):
-      for mm in self.__sendSipmStatus.keys():
-	print("XXXX __sipm__::sendSipmStatusToDatabase:: self.__sendSipmStatus[%s] = xxx%sxxx") %(mm,self.__sendSipmStatus[mm])
+      for mm in list(self.__sendSipmStatus.keys()):
+        print(("XXXX __sipm__::sendSipmStatusToDatabase:: self.__sendSipmStatus[%s] = xxx%sxxx") %(mm,self.__sendSipmStatus[mm]))
     if self.__sendToDatabase != 0:
-      print "send Local Measurements to database!"
+      print("send Local Measurements to database!")
       self.__myDataLoader2 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTableStatus)
       self.__myDataLoader2.addRow(self.__sendSipmStatus,'update')  ## MUST update... Sipm row already exist!
       for n in range(0,self.__maxTries):
-	(self.__retVal,self.__code,self.__text) = self.__myDataLoader2.send()  ## send it to the data base!
-	print "self.__text = %s" % self.__text
-	time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	if self.__retVal:				## success!  data sent to database
-	  print "XXXX __sipm__::sendSipmStatusToDatabase: "+self.__serialNumber[tempKey]+" Database Transmission Success!!!"
-	  print self.__text
-	  break
-	elif self.__password == '':
-	  print('XXXX __sipm__::sendSipmStatusToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	else:
-	  print "XXXX __sipm__::sendSipmStatusToDatabase:  Database Transmission: Failed!!!"
-	  print self.__code
-	  print self.__text 
+        (self.__retVal,self.__code,self.__text) = self.__myDataLoader2.send()  ## send it to the data base!
+        print("self.__text = %s" % self.__text)
+        time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+        if self.__retVal:                        ## success!  data sent to database
+          print("XXXX __sipm__::sendSipmStatusToDatabase: "+self.__serialNumber[tempKey]+" Database Transmission Success!!!")
+          print(self.__text)
+          break
+        elif self.__password == '':
+          print(('XXXX __sipm__::sendSipmStatusToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+        else:
+          print("XXXX __sipm__::sendSipmStatusToDatabase:  Database Transmission: Failed!!!")
+          print(self.__code)
+          print(self.__text) 
     if(self.__cmjDebug > 1): print("XXXX __sipm__::sendSipmStatusToDatabase: exit")
     return 0 ## success
 ##
@@ -1070,7 +1104,7 @@ class sipm(object):
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Local Measurements...  End
+##            Local Measurements...  End
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -1082,7 +1116,7 @@ class sipm(object):
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Vendor Measurements.... Begin
+##            Vendor Measurements.... Begin
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -1109,20 +1143,20 @@ class sipm(object):
 ##
   def dumpSpreadSheet(self):
     print("sipm::dumpSpreadSheet \n")
-    print("PO Number = %s \n") % (self.__poNumber)
-    print("PO Worker = %s \n") % (self.__poNumberWorker)
-    print("PO Institution = %s \n") %(self.__poNumberInstitution)
-    print("PO Quantiy Ordered = %s \n") % (self.__poNumberQuantity)
-    print("PO Order Date = %s \n") % (self.__poNumberDate)
+    print(("PO Number = %s \n") % (self.__poNumber))
+    print(("PO Worker = %s \n") % (self.__poNumberWorker))
+    print(("PO Institution = %s \n") %(self.__poNumberInstitution))
+    print(("PO Quantiy Ordered = %s \n") % (self.__poNumberQuantity))
+    print(("PO Order Date = %s \n") % (self.__poNumberDate))
     print(" ---------------------------- \n")
     print(" Batch Information \n")
-    print(" len(self.__batchNumber) = %d \n") % len(self.__batchNumber)
+    print((" len(self.__batchNumber) = %d \n") % len(self.__batchNumber))
     for batch in self.__batchNumber:
-	print("batch number: %s Worker %s Inst %s Quant %s Date %s \n") % (batch, self.__batchWorker[batch], self.__batchInstitution[batch], self.__batchQuantityReceived[batch], self.__batchDateReceived[batch])
+      print(("batch number: %s Worker %s Inst %s Quant %s Date %s \n") % (batch, self.__batchWorker[batch], self.__batchInstitution[batch], self.__batchQuantityReceived[batch], self.__batchDateReceived[batch]))
     print(" ----------------------------- \n")
     print(" 'Sipm Information \n")
-    for key in self.__serialNumber.keys():
-      print('Serial Number %s VendorVop  %9.2f VendorGain %9.2f VendorId %9.2f VendorTemp %9.2f localVop %9.2f localId %9.2f localGain %9.2f localTemp %9.2f \n') % (self.__serialNumber[key],float(self.__vend_Vop[key]),float(self.__vend_Gain[key]),float(self.__vend_Id[key]),float(self.__vend_Temp[key]),float(self.__local_Vop[key]),float(self.__local_Id[key]),float(self.__local_Gain[key]),float(self.__local_Temp[key]))
+    for key in list(self.__serialNumber.keys()):
+      print(('Serial Number %s VendorVop  %9.2f VendorGain %9.2f VendorId %9.2f VendorTemp %9.2f localVop %9.2f localId %9.2f localGain %9.2f localTemp %9.2f \n') % (self.__serialNumber[key],float(self.__vend_Vop[key]),float(self.__vend_Gain[key]),float(self.__vend_Id[key]),float(self.__vend_Temp[key]),float(self.__local_Vop[key]),float(self.__local_Id[key]),float(self.__local_Gain[key]),float(self.__local_Temp[key])))
 ##
 ## -----------------------------------------------------------------
 ##  Send the SiPM vendor measurements to the database... one SiPM at a time!
@@ -1136,51 +1170,55 @@ class sipm(object):
       ### Must load the batch table first!
       self.__sipmVendMeasString = self.buildRowString_for_SiPM_VendorValues_table(self.__vendorSipmMeas)
       if(self.__cmjDebug > 1): 
-	  self.dumpString_for_SiPM_VendorValue(self.__sipmVendMeasString,self.__firstCall)
-	  self.__firstCall += 1
+        self.dumpString_for_SiPM_VendorValue(self.__sipmVendMeasString,self.__firstCall)
+        self.__firstCall += 1
       if self.__sendToDatabase != 0:
-	print "send Vendor Values to database!"
-	self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
-	if(self.__update == 0):
-	  self.__myDataLoader1.addRow(self.__sipmVendMeasString)  ## use this to insert new entry
-	  for n in range(0,self.__maxTries):
-	    (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+        print("send Vendor Values to database!")
+        self.__myDataLoader1 = DataLoader(self.__password,self.__url,self.__group,self.__sipmTable)
+        if(self.__update == 0):
+          self.__myDataLoader1.addRow(self.__sipmVendMeasString)  ## use this to insert new entry
+          for n in range(0,self.__maxTries):
+            (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
 
-	    print "self.__text = %s" % self.__text
-	    time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	    if self.__retVal:				## success!  data sent to database
-	      print "XXXX __sipm__::sendSipmVendorMeasToDatabase: SiPMid: "+self.__vendorSipmMeas+" Database Transmission Success!!!"
-	      print self.__text
-	      break
-	    elif self.__password == '':
-	      print('XXXX __sipm__::sendSipmVendorMeasToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	    else:
-	      print "XXXX __sipm__::sendSipmVendorMeasToDatabase:  Database Transmission: Failed!!!"
-	      print self.__code
-	      print self.__text
+            print("self.__text = %s" % self.__text)
+            time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+            if self.__retVal:                        ## success!  data sent to database
+              #print("XXXX __sipm__::sendSipmVendorMeasToDatabase: SiPMid: "+self.__vendorSipmMeas+" Database Transmission Success!!!")
+              tempString = "XXXX __sipm__::sendSipmVendorMeasToDatabase: SiPMid: "+self.__vendorSipmMeas+" Database Transmission Success!!!"
+              print(("%S") % (tempString))
+              print(self.__text)
+              break
+            elif self.__password == '':
+              print(("%s") % ('XXXX __sipm__::sendSipmVendorMeasToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+            else:
+              print(("%s") % ("XXXX __sipm__::sendSipmVendorMeasToDatabase:  Database Transmission: Failed!!!"))
+              print(self.__code)
+              print(self.__text)
 
-	else:
-	  self.__myDataLoader1.addRow(self.__sipmVendMeasString,'update')  ## use this to update existing entry
-	  for n in range(0,self.__maxTries):
-	    (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
-	    print "self.__text = %s" % self.__text
-	    time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
-	    if self.__retVal:				## success!  data sent to database
-	      print "XXXX __sipm__::sendSipmVendorMeasToDatabase: SiPMid: "+self.__vendorSipmMeas+" Update Database Transmission Success!!!"
-	      print self.__text
-	      break
-	    elif self.__password == '':
-	      print('XXXX __sipm__::sendSipmVendorMeasToDatabase: Update Test mode... DATA WILL NOT BE SENT TO THE DATABASE')()
-	    else:
-	      print "XXXX __sipm__::ssendSipmVendorMeasToDatabase:  Database Transmission: Failed!!!"
-	      print self.__code
-	      print self.__text
+      else:
+        self.__myDataLoader1.addRow(self.__sipmVendMeasString,'update')  ## use this to update existing entry
+        for n in range(0,self.__maxTries):
+          (self.__retVal,self.__code,self.__text) = self.__myDataLoader1.send()  ## send it to the data base!
+          print("self.__text = %s" % self.__text)
+          time.sleep(self.__sleepTime) ## sleep so we don't send two records with the same timestamp!
+          if self.__retVal:                        ## success!  data sent to database
+            #print("XXXX __sipm__::sendSipmVendorMeasToDatabase: SiPMid: "+self.__vendorSipmMeas+" Update Database Transmission Success!!!")
+            tempString = "XXXX __sipm__::sendSipmVendorMeasToDatabase: SiPMid: "+self.__vendorSipmMeas+" Update Database Transmission Success!!!"
+            print(("%s") % (tempString))
+            print(self.__text)
+            break
+          elif self.__password == '':
+            print(('XXXX __sipm__::sendSipmVendorMeasToDatabase: Update Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
+          else:
+            print("XXXX __sipm__::ssendSipmVendorMeasToDatabase:  Database Transmission: Failed!!!")
+            print(self.__code)
+            print(self.__text)
     return 0  ## success
 
 ##-----------------------------------------------------------------
 ## This method builds the table for the vendor Sipm test results...
   def buildRowString_for_SiPM_VendorValues_table(self,tempKey):
-    self.__sendSipmRow = {}		## define empty dictionary
+    self.__sendSipmRow = {}            ## define empty dictionary
     ##  self.__sendSipmRow['po_number'] = self.__poNumber
     self.__sendSipmRow['sipm_id'] = self.__serialNumber[tempKey]
     self.__sendSipmRow['test_type'] = 'vendor'
@@ -1197,16 +1235,16 @@ class sipm(object):
 ## ----------------------------------------------------------------
   def dumpString_for_SiPM_VendorValue(self,tempString,firstCall):
     if(firstCall == 0):
-      print "XXXX __sipm__::dumpString_for_SiPM_VendorValue.... Dump string sent to database "
-      print "  Send Sipm Vendor Values to database \n"
-    print "%s \n" % tempString
+      print("XXXX __sipm__::dumpString_for_SiPM_VendorValue.... Dump string sent to database ")
+      print("  Send Sipm Vendor Values to database \n")
+    print("%s \n" % tempString)
 ##
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
 ##
-##		Vendor Measurements... End
+##            Vendor Measurements... End
 ##
 ## ----------------------------------------------------------------
 ## ----------------------------------------------------------------
@@ -1217,7 +1255,7 @@ class sipm(object):
 ##  Entry point to program if this file is executed...
 if __name__ == '__main__':
   parser = optparse.OptionParser("usage: %prog [options] file1.txt \n")
-#	Build general help string:
+#      Build general help string:
   modeString = []
   modeString.append("To run in default mode (add all Sipm information to database):")
   modeString.append("> python Sipm.py -i SipmSpreadSheet.cvs")
@@ -1239,9 +1277,9 @@ if __name__ == '__main__':
   modeString.append("Add locally measured i vs v curve to database (only): \t\t")
   modeString.append("\t\t > python Sipm.py -i SipmSpreadSheet.cvs -m 6")
   parser.add_option('-i',dest='inputCvsFile',type='string',default="",help=modeString[0]+'\t\t\t\t\t\t\t '+modeString[1]+'\t\t\t '+modeString[2]+'\t\t\t\t\t\t\t '+modeString[3]+'\t\t '+modeString[4]+'\t\t\t\t\t\t\t '+modeString[5]+'\t\t\t\t\t '+modeString[6]+'\t\t\t\t\t '+modeString[7]+'\t\t\t\t\t '+modeString[8]+'\t\t\t\t '+modeString[9]+"\t\t\t\t"+modeString[10]+modeString[11]+'\t\t\t\t'+modeString[12]+modeString[13]+'\t\t\t\t'+modeString[14]+modeString[15])
-#	Mode option.... Either run all functions or select a specfic function
+#      Mode option.... Either run all functions or select a specfic function
   parser.add_option('-m',dest='runMode',type='int',default=0,help=modeString[3]+'\t\t '+modeString[4]+'\t\t\t\t '+modeString[5]+'\t\t\t\t '+modeString[6]+'\t\t '+modeString[7]+'\t\t '+modeString[8]+'\t\t '+modeString[9])
-#	Debug level
+#      Debug level
   parser.add_option('-d',dest='debugMode',type='int',default=0,help='set debug: 0 (off - default),  integer value set debug level... larger more verbose.')
   parser.add_option('-t',dest='testMode',type='int',default=0,help='set to test mode (do not send to database): 1')
   parser.add_option('--update',dest='update',type='int',default=0,help='--update = 1, change from insert to update mode')
@@ -1250,21 +1288,21 @@ if __name__ == '__main__':
   if(inputSipmFile == ''):
     print("Supply input spreadsheet comma-separated-file")
     for outString in modeString:
-      print("%s") % outString
+      print(("%s") % outString)
     exit()
-  print ("\nRunning %s \n") % (ProgramName)
-  print ("%s \n") % (Version)
-  print "inputSipmFile = %s " % inputSipmFile
+  print(("\nRunning %s \n") % (ProgramName))
+  print(("%s \n") % (Version))
+  print("inputSipmFile = %s " % inputSipmFile)
   mySipm = sipm()
   mySipm.turnOnDebug()
   mySipm.openFile(inputSipmFile)
   if(options.update == 1): mySipm.updateMode()
-  if(options.runMode == 6):	## Read IV file  this is unique mode... only performs this operation
+  if(options.runMode == 6):      ## Read IV file  this is unique mode... only performs this operation
     if(options.testMode == 0):
       mySipm.turnOnSendToDatabase()
       mySipm.sendToDevelopmentDatabase()
     mySipm.setDebug(options.debugMode)
-    mySipm.readIVfile()		## read the IV data file
+    mySipm.readIVfile()            ## read the IV data file
     mySipm.sendIvMeasurmentsTodatabase()
   else:
     mySipm.readFile()
@@ -1278,11 +1316,11 @@ if __name__ == '__main__':
     #mySipm.sendToProductionDatabase()  ######## SEND TO PRODUCTION DATABASE!!!!
   else:
     mySipm.turnOffSendToDatabase()
-    print("%s: TEST MODE: DO NOT SEND TO DATABASE") % ProgramName
-##	
-##	Run the script in various modes.
+    print(("%s: TEST MODE: DO NOT SEND TO DATABASE") % ProgramName)
+##      
+##      Run the script in various modes.
 ##
-  if(options.runMode == 0): 	# run all
+  if(options.runMode == 0):       # run all
     proceed0 = 0   ## set this to zero to start process..
     proceed1 = 1
     proceed2 = 1
@@ -1295,39 +1333,39 @@ if __name__ == '__main__':
     if(proceed2 == 0): proceed3  = mySipm.sendSipmIdsToDatabase()
     if(proceed3 == 0): proceed4 = mySipm.sendSipmVendMeasToDatabase()
     if(proceed4 == 0): proceed5 = mySipm.sendSipmLocalMeasToDatabase()
-    if(proceed5 == 0): print("%s wrote all elements to database \n") % (ProgramName)
+    if(proceed5 == 0): print(("%s wrote all elements to database \n") % (ProgramName))
   if(options.runMode == 1):  #  just send PO to database 
     proceed1 = mySipm.sendPoNumberToDatabase()
     if(proceed1 == 0):
-      print("%s wrote Perchase Order Information into database!")  % (ProgramName)
+      print(("%s wrote Perchase Order Information into database!")  % (ProgramName))
     else:
-      print("%s DID NOT write Purchase Order Information into database!!!")  % (ProgramName)
+      print(("%s DID NOT write Purchase Order Information into database!!!")  % (ProgramName))
   if(options.runMode == 2):  # send recieve PO information from database
     proceed2 = mySipm.sendReceivedPoToDatabase()
     if(proceed2 == 0):
-      print("%s wrote Received Purchase Order Information into database!")  % (ProgramName)
+      print(("%s wrote Received Purchase Order Information into database!")  % (ProgramName))
     else:
-      print("%s DID NOT write Received Purchase Order Information into database!!!")  % (ProgramName)
+      print(("%s DID NOT write Received Purchase Order Information into database!!!")  % (ProgramName))
   if(options.runMode == 3):  # send Sipm Id's to database
     proceed3  = mySipm.sendSipmIdsToDatabase()
     if(proceed3 == 0):
-      print("%s wrote SiPM Id numbers into database!")  % (ProgramName)
+      print(("%s wrote SiPM Id numbers into database!")  % (ProgramName))
     else:
-      print("%s DID NOT write SiPM Id numbers into database!!!")  % (ProgramName)
-  if(options.runMode == 4):	# enter the vendor measured test quanties.
+      print(("%s DID NOT write SiPM Id numbers into database!!!")  % (ProgramName))
+  if(options.runMode == 4):      # enter the vendor measured test quanties.
     proceed4 = mySipm.sendSipmVendMeasToDatabase()
     if(proceed4 == 0):
-      print("%s wrote SiPM Vendor Measured quantities into database!")  % (ProgramName)
+      print(("%s wrote SiPM Vendor Measured quantities into database!")  % (ProgramName))
     else:
-      print("%s DID NOT write SiPM Vendor Measured quantities into database!!!")  % (ProgramName)
-  if(options.runMode == 5):	# enter the locally measured test quantities
+      print(("%s DID NOT write SiPM Vendor Measured quantities into database!!!")  % (ProgramName))
+  if(options.runMode == 5):      # enter the locally measured test quantities
     proceed5 = mySipm.sendSipmLocalMeasToDatabase()
     if(proceed5 == 0):
-      print("%s wrote SiPM Locally Measured quantities into database!")  % (ProgramName)
+      print(("%s wrote SiPM Locally Measured quantities into database!")  % (ProgramName))
     else:
-      print("%s DID NOT write SiPM Locally Measured quantities into database!!!")  % (ProgramName)
+      print(("%s DID NOT write SiPM Locally Measured quantities into database!!!")  % (ProgramName))
 ##
   if(options.testMode == 1): print("IN TEST MODE: the script did not write to the database!")
-  print("Finished running %s \n") % (ProgramName)
+  print(("Finished running %s \n") % (ProgramName))
 ##
 ##

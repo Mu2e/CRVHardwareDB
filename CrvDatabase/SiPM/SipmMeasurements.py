@@ -7,26 +7,30 @@
 ##  Modified by cmj 2020Jun15 to use cmjGuiLibGrid2019Jan30
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
+##  Modified by cmj2021May11... replace dataloader3.zip with dataloader.zip
 ##
 ##
 #!/bin/env python
-from Tkinter import *         # get widget class
-import Tkinter as tk
-import tkFileDialog
+from tkinter import *         # get widget class
+import tkinter as tk
+import tkinter.filedialog
 import os
 import sys        ## 
-import optparse   ## parser module... to parse the command line arguments
+import optparse   ## parser module... to parse the commaAll Filesnd line arguments
 import math
 from time import *
-sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2020Dec16
+sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2021May11
 sys.path.append("../CrvUtilities/crvUtilities.zip")      ## 2018Oct2 add highlight to scrolled list
 from DataLoader import *   ## module to read/write to database....
 from databaseConfig import *
 from cmjGuiLibGrid import *  ## 2020Aug03
-from Sipm2019Jan30 import *
+#from Sipm2019Jan30 import *
+from Sipm import *
 ##
-ProgramName = "goodSipm2019Jan30.py"
-Version = "version2020.12.16"
+ProgramName = "goodSipm2021May12.py"
+Version = "version2021.05.12"
 ##
 class getSipmMeasurements(Frame):
   def __init__(self,parent=None, myRow=0, myCol=0):
@@ -61,25 +65,25 @@ class getSipmMeasurements(Frame):
   def getSipmIdFromPackNumber(self,tempPackNumber):
     print(" -------------------------------------- ")
     self.__packNumber = tempPackNumber
-    print("__SimpMeasurements__getSipmIdFromPackNumber:: packNumber = %s") % self.__packNumber
+    print(("__SimpMeasurements__getSipmIdFromPackNumber:: packNumber = %s") % self.__packNumber)
     self.__getSipmIds = DataQuery(self.__queryUrl)
     self.__table = "sipms"
     self.__fetchThese = "sipm_id,"
     self.__fetchCondition = "pack_number:eq:"+str(self.__packNumber)
-    print (".... getSipmsFromWafflePack: self.__queryUrl   = %s \n") % (self.__queryUrl)
-    print (".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table)
-    print (".... getSipmsFromWafflePack: self.__fetchThese           = %s \n") % (self.__fetchThese)
-    print (".... getSipmsFromWafflePack: self.__fetchCondition       = %s \n") % (self.__fetchCondition)
+    print((".... getSipmsFromWafflePack: self.__queryUrl   = %s \n") % (self.__queryUrl))
+    print((".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table))
+    print((".... getSipmsFromWafflePack: self.__fetchThese           = %s \n") % (self.__fetchThese))
+    print((".... getSipmsFromWafflePack: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
     self.__sipmId = []
     self.__sipmId = self.__getSipmIds.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
-    print("__SimpMeasurements__getSipmIdFromPackNumber:: self.__sipmId = %s") % (self.__sipmId)
+    print(("__SimpMeasurements__getSipmIdFromPackNumber:: self.__sipmId = %s") % (self.__sipmId))
     
 ##
 ## -------------------------------------------------------------------
   def getSipmVendorMeasurementsFromDatabase(self,tempSipmId):
     print(" -------------------------------------- ")
     self.__sipmId=tempSipmId
-    print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase:: self.__sipmId = %s") % self.__sipmId
+    print(("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase:: self.__sipmId = %s") % self.__sipmId)
     self.__getSipmValues = DataQuery(self.__queryUrl)
     self.__table = "sipm_measure_tests"
     #self.__fetchThese = "sipm_id,measure_test_date,test_type,worker_barcode,workstation_barcode,"
@@ -90,15 +94,15 @@ class getSipmMeasurements(Frame):
     self.__fetchCondition = "sipm_id:eq:"+str(self.__sipmId)+"&test_type:eq:vendor"
     self.__localSipmResult = []
     self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
-    print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::len(self.__localSipmResult) = %d") % len(self.__localSipmResult)
-    print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::self.__localSipmResult = %s") % self.__localSipmResult
+    print(("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::len(self.__localSipmResult) = %d") % len(self.__localSipmResult))
+    print(("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::self.__localSipmResult = %s") % self.__localSipmResult)
     print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase:: exit")
 ##
 ## -------------------------------------------------------------------
   def getSipmLocalMeasurementsFromDatabase(self,tempSipmId):
     print(" -------------------------------------- ")
     self.__sipmId=tempSipmId
-    print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase:: self.__sipmId = %s") % self.__sipmId
+    print(("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase:: self.__sipmId = %s") % self.__sipmId)
     self.__getSipmValues = DataQuery(self.__queryUrl)
     self.__table = "sipm_measure_tests"
     self.__fetchThese = "sipm_id,measure_test_date,test_type,worker_barcode,workstation_barcode,"
@@ -108,8 +112,8 @@ class getSipmMeasurements(Frame):
     self.__fetchCondition = "sipm_id:eq:"+str(self.__sipmId)+"&test_type:eq:measured"
     self.__localSipmResult = []
     self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
-    print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::len(self.__localSipmResult) = %d") % len(self.__localSipmResult)
-    print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::self.__localSipmResult = %s") % self.__localSipmResult
+    print(("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::len(self.__localSipmResult) = %d") % len(self.__localSipmResult))
+    print(("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase::self.__localSipmResult = %s") % self.__localSipmResult)
     print("__SimpMeasurements__getSipmVendorMeasurementsFromDatabase:: exit")
 ##
 ## -------------------------------------------------------------------

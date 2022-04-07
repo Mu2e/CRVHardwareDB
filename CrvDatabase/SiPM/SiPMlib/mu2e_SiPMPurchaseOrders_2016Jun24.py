@@ -8,21 +8,24 @@
 ##  in the database in a text string that can be written
 ##  into an independent window.
 ##
-##	Modified by cmj 2016Jan04... use central class to define URL's
+##      Modified by cmj 2016Jan04... use central class to define URL's
 ##  Modified by cmj 2016Jan12 to use different directories for support modules...
-##		These are located in zip files in the various subdirectories....
-##										"pre_production" or "production"
+##            These are located in zip files in the various subdirectories....
+##                                                            "pre_production" or "production"
 ##  Modified by cmj2016Jun24... Add one more upward level for subdirectory to get to the utilities directory
-##				for dataloader... place the CRV utilities directory in the "crvUtilities" directory
+##                        for dataloader... place the CRV utilities directory in the "crvUtilities" directory
 ##  Modified by cmj2020Jun16... Use cmjGuiLibGrid2019Jan30
 ##  Modified by cmj2020Jul13.... Change to hdbClient_v2_2
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
+##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
+##  Modified by cmj2021May14.... replace dataloader with dataloader3
+##  Modified by cmj2021May14... replace tabs with spaces for block statements to convert to python 3
 ##
 ##
 cmjDiag = 0
 import sys
-from Tkinter import *         # get widget class
+from tkinter import *         # get widget class
 sys.path.append("../../Utilities/hdbClient_v3_3/Dataloader.zip")  ## 2020Dec16
 sys.path.append("../CrvUtilities/crvUtilities.zip")
 from cmjGuiLibGrid import *  ## cmj2020Aug03
@@ -32,55 +35,55 @@ import time
 ##
 class getPurchaseOrders(Frame):
     def __init__(self,parent=None,myRow=0,myCol=0):
-	Frame.__init__(self,parent)
-	self.__poList = []
-	self.__numberReturned = 10
-	self.__database_config = databaseConfig()
+      Frame.__init__(self,parent)
+      self.__poList = []
+      self.__numberReturned = 10
+      self.__database_config = databaseConfig()
 ##  Get all workers, return as a list
     def getPo(self):
-	  self.__queryUrl = self.__database_config.getQueryUrl()
-	  self.__vendorValues = DataQuery(self.__queryUrl)
-	  self.__vendorValueResults = []
-	  self.__database = 'mu2e_hardware_dev'
-	  self.__table = "sipm_purchase_orders"
-	  if (cmjDiag >= allDiag or cmjDiag == 9):
-	    print "getWorkerBarCode::getWorker-- self.__queryUrl =%s \n" % self.__queryUrl 
-	    print "getWorkerBarCode::getWorker--self.__database = %s \n" % self.__database
-	    print "getWorkerBarCode::getWorker--self.__table    = %s \n" % self.__table
-	  poList = self.__vendorValues.query(self.__database,self.__table,"po_number,quantity_ordered,date_ordered",None,'-po_number',self.__numberReturned)
-	  if (cmjDiag >= allDiag or cmjDiag == 9): 
-	    print 'getWorkerBarCode::getWorker--... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key])
-	  return poList  ## return a list of strings
+        self.__queryUrl = self.__database_config.getQueryUrl()
+        self.__vendorValues = DataQuery(self.__queryUrl)
+        self.__vendorValueResults = []
+        self.__database = 'mu2e_hardware_dev'
+        self.__table = "sipm_purchase_orders"
+        if (cmjDiag >= allDiag or cmjDiag == 9):
+          print("getWorkerBarCode::getWorker-- self.__queryUrl =%s \n" % self.__queryUrl) 
+          print("getWorkerBarCode::getWorker--self.__database = %s \n" % self.__database)
+          print("getWorkerBarCode::getWorker--self.__table    = %s \n" % self.__table)
+        poList = self.__vendorValues.query(self.__database,self.__table,"po_number,quantity_ordered,date_ordered",None,'-po_number',self.__numberReturned)
+        if (cmjDiag >= allDiag or cmjDiag == 9): 
+          print('getWorkerBarCode::getWorker--... sendRow... key = %s value = %s \n' % (key,self.__sendRow[key]))
+        return poList  ## return a list of strings
     def setNumberReturned(self,tempNumber):
-	  self.__numberReturned = tempNumber
+        self.__numberReturned = tempNumber
 ##
 ##   
 class packWindow(Frame):
     def __init__(self,parent=None,myRow = 0, myCol = 0):
-	  Frame.__init__(self,parent)
-          if (cmjDiag >= allDiag or cmjDiag == 100): print 'XXXX packWindow::__main__  Enter driving method '
-	  self.__labelWidth = 20
-	  self.__entryWidth = 20
-	  self.__buttonWidth = 5
-	  self.__database_config = databaseConfig()
-	  self.__password = self.__database_config.getSipmKey()
-	  self.__dataBaseResults = myScrolledText(self)
-	  self.__dataBaseResults.setTextBoxWidth(50)
-	  self.__dataBaseResults.setText('Purchase Orders from database',None)
-	  self.__dataBaseResults.makeWidgets()
-	  self.__banner = ('%10s   %10s   %10s \n') %('PO Number','Quantity','Order Date')
-	  self.__dataBaseResults.setText(self.__banner,None,END)
-	  self.__dataBaseText = getPurchaseOrders()
-	  self.__dataBaseStringList = self.__dataBaseText.getPo()
-	  for self.__mline in self.__dataBaseStringList:
-	      parcedRow = self.__mline.split(',')
-	      mcount = 0
-	      self.__line = '\n'
-	      for item in parcedRow:
-		#print "item[%d] = %s \n" % (mcount, item)
-		mcount += 1     
-		self.__line +=  ('%10s   ') % item
-	      #self.__line += ' \n'
-	      self.__dataBaseResults.setText(self.__line,None,END)
-	  self.__dataBaseResults.grid(row=0,column=0)
+        Frame.__init__(self,parent)
+          if (cmjDiag >= allDiag or cmjDiag == 100): print('XXXX packWindow::__main__  Enter driving method ')
+        self.__labelWidth = 20
+        self.__entryWidth = 20
+        self.__buttonWidth = 5
+        self.__database_config = databaseConfig()
+        self.__password = self.__database_config.getSipmKey()
+        self.__dataBaseResults = myScrolledText(self)
+        self.__dataBaseResults.setTextBoxWidth(50)
+        self.__dataBaseResults.setText('Purchase Orders from database',None)
+        self.__dataBaseResults.makeWidgets()
+        self.__banner = ('%10s   %10s   %10s \n') %('PO Number','Quantity','Order Date')
+        self.__dataBaseResults.setText(self.__banner,None,END)
+        self.__dataBaseText = getPurchaseOrders()
+        self.__dataBaseStringList = self.__dataBaseText.getPo()
+        for self.__mline in self.__dataBaseStringList:
+            parcedRow = self.__mline.split(',')
+            mcount = 0
+            self.__line = '\n'
+            for item in parcedRow:
+            #print "item[%d] = %s \n" % (mcount, item)
+            mcount += 1     
+            self.__line +=  ('%10s   ') % item
+            #self.__line += ' \n'
+            self.__dataBaseResults.setText(self.__line,None,END)
+        self.__dataBaseResults.grid(row=0,column=0)
 
