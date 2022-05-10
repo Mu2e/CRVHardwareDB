@@ -71,6 +71,7 @@
 ##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
 ##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
+##  Modified by cmj2022May10... fix diagnogstic print statements in "sendDiCounterTestsToDatabase", lines 297-338
 ##
 ##
 ##
@@ -303,7 +304,7 @@ class diCounter(object):
       self.__diCounterString = self.buildRowString_for_DiCounter_table(self.__localDiCounterId)
       self.logDiCounterString()
       if self.__cmjDebug != 0: 
-        print(("XXXX __diCounter__::sendDiCounterToDatabase: self.__localFiberId = %s") % (self.__localDiCounterId))
+        print(("XXXX __diCounter__::sendDiCounterToDatabase: self.__localDiCounterId = %s") % (self.__localDiCounterId))  ## cmj2022May10
         self.dumpDiCounterString()  ## debug.... dump diCounter string...
       if self.__sendToDatabase != 0:
         print("send to diCounter database!")
@@ -327,14 +328,14 @@ class diCounter(object):
           else:
             print("XXXX__diCounter__::sendDiCounterToDatabase:  di-Counter Transmission: Failed!!!")
             if(self.__cmjDebug > 1): 
-              print("XXXX__diCounter__:sendCounterToDatabase... di-Counter Transmission Failed: \n")
-              print("XXXX__diCounter__:sendCounterToDatabase... String sent to dataLoader: \n")
-              print(("XXXX__diCounter__:sendCounterToDatabase... self.__diCounterString \%s \n") % (self.__diCounterString))
-            print(("XXXX__diCounter__:sendCounterToDatabase... self.__code = %s \n") % (self.__code))
-            print(("XXXX__diCounter__:sendCounterToDatabase... self.__text = %s \n") % (self.__text)) 
+              print("XXXX__diCounter__:sendDiCounterToDatabase... di-Counter Transmission Failed: \n")  ## cmj2022May10
+              print("XXXX__diCounter__:sendDiCounterToDatabase... String sent to dataLoader: \n")  ## cmj2022May10
+              print(("XXXX__diCounter__:sendDiCounterToDatabase... self.__diCounterString \%s \n") % (self.__diCounterString))  ## cmj2022May10
+            print(("XXXX__diCounter__:sendDiCounterToDatabase... self.__code = %s \n") % (self.__code))   ## cmj2022May10
+            print(("XXXX__diCounter__:sendDiCounterToDatabase... self.__text = %s \n") % (self.__text))   ## cmj2022May10
             self.__logFile.write("XXXX__diCounter__::sendDiCounterToDatabase:  di-Counter Transmission: Failed!!!")
-            self.__logFile.write('XXXX__diCounter__:sendCounterToDatabase... self.__code = '+self.__code+'\n')
-            self.__logFile.write('XXXX__diCounter__:sendCounterToDatabase... self.__text = '+self.__text+'\n')
+            self.__logFile.write('XXXX__diCounter__:sendDiCounterToDatabase... self.__code = '+self.__code+'\n')   ## cmj2022May10
+            self.__logFile.write('XXXX__diCounter__:sendDiCounterToDatabase... self.__text = '+self.__text+'\n')   ## cmj2022May10
     return 0
 ## -----------------------------------------------------------------
 ## -----------------------------------------------------------------
