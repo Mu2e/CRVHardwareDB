@@ -2,16 +2,15 @@ These are instruction for running the sipmQuerryRoot scipt.
 Written by Merrill Jenkins
 	    University of South Alabama
 	    2017Jun28
+Modified by Merrill Jenkins
+	    2022Jun22
+
 This version uses PyRoot as run on the mu2e environment.
-Start by setting up the mu2e environment, then root:
+Start by setting up the mu2e environment:
+$ source /cvmfs/fermilab.opensciencegrid.org/products/common/etc/setups
 $ setup mu2e
-$ setup root
-
-(The last setup can be tricky, on my machine running v2_04_00a,
-the setup is:
-$ setup root v6_06_08
-)
-
+$ setup muse
+$ muse setup
 
 To run this script: 
 $ python SipmQueryRoot.py

@@ -29,6 +29,7 @@
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
 ##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##  Modified by cmj2022Jan20... finally able to save character strings in root trees using python3
+##  Modified by cmj2022Jun22... Change instruction file for Fibers instead of extrusions
 ##
 #!/usr/bin/env python
 ##
@@ -201,7 +202,7 @@ class multiWindow(Frame):
     self.__myInstructions = myScrolledText(self)
     self.__myInstructions.setTextBoxWidth(50)
     self.__myInstructions.makeWidgets()
-    self.__myInstructions.setText('','Instructions/InstructionsForExtrusionQuerry2018Mar26.txt')
+    self.__myInstructions.setText('','Instructions/InstructionsForFiberQuerry2012Jun22.txt')
     self.__myInstructions.grid(row=self.__firstRow,column=self.__col,columnspan=2)
     self.__firstRow += 1
 ##      Plot histograms

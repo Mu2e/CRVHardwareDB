@@ -1,0 +1,22 @@
+These are instruction for running the extrusionQuerry scipt.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    March 26, 2018
+
+Modified by Merrill Jenkins
+	    2022Jun22
+	    
+This script will produced a root tree containing the values saved for
+fibers.  The root tree is saved in the "logfile" subdirectory
+with the date and time of creation as part of the file name.
+
+This version uses PyRoot as run on the mu2e environment.
+Start by setting up the mu2e environment:
+$ source /cvmfs/fermilab.opensciencegrid.org/products/common/etc/setups
+$ setup mu2e
+$ setup muse
+$ muse setup
+
+Click the green "Histogram" button.
+
+The root tree will be found in the "logfile" subdirectory with the date and time of creation
