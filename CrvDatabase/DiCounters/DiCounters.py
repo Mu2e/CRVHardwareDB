@@ -72,6 +72,8 @@
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
 ##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##  Modified by cmj2022May10... fix diagnogstic print statements in "sendDiCounterTestsToDatabase", lines 297-338
+##  Modified by cmj2022Jul08... fix diagnogstic pring string concatonation on line 340
+##  Modified by cmj2022Jul08... fix diagnoistic print statements... removed () on lines 328, 409, 480
 ##
 ##
 ##
@@ -323,7 +325,7 @@ class diCounter(object):
             self.__logFile.write('XXXX__diCounter__::sendDiCounterToDatabase: sent '+self.__localDiCounterId+' to database')
             break
           elif self.__password == '':
-            print(('XXXX__diCounter__::sendDiCounterToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+            print(('XXXX__diCounter__::sendDiCounterToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')) ## cmj2022Jul08
             break
           else:
             print("XXXX__diCounter__::sendDiCounterToDatabase:  di-Counter Transmission: Failed!!!")
@@ -335,7 +337,7 @@ class diCounter(object):
             print(("XXXX__diCounter__:sendDiCounterToDatabase... self.__text = %s \n") % (self.__text))   ## cmj2022May10
             self.__logFile.write("XXXX__diCounter__::sendDiCounterToDatabase:  di-Counter Transmission: Failed!!!")
             self.__logFile.write('XXXX__diCounter__:sendDiCounterToDatabase... self.__code = '+self.__code+'\n')   ## cmj2022May10
-            self.__logFile.write('XXXX__diCounter__:sendDiCounterToDatabase... self.__text = '+self.__text+'\n')   ## cmj2022May10
+            self.__logFile.write('XXXX__diCounter__:sendDiCounterToDatabase... self.__text = '+str(self.__text)+'\n')   ## cmj2022May10 ## cmj2022Jul08
     return 0
 ## -----------------------------------------------------------------
 ## -----------------------------------------------------------------
@@ -404,7 +406,7 @@ class diCounter(object):
             print(self.__text)
             break
           elif self.__password == '':
-            print(('XXXX __diCounter__::sendDiCounterImageToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+            print(('XXXX __diCounter__::sendDiCounterImageToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')) ## cmj2022Jul08
             break
           else:
             print("XXXX __diCounter__::sendDiCounterImageToDatabase:  di-Counter Image Transmission: Failed!!!")
@@ -475,7 +477,7 @@ class diCounter(object):
                 print(self.__text)
                 break
               elif self.__password == '':
-                print(('XXXX __diCounter__::sendDiCounterTestsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+                print(('XXXX __diCounter__::sendDiCounterTestsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')) ## cmj2022Jul08
                 break
               else:
                 print("XXXX __diCounter__::sendDiCounterTestsToDatabase:  di-Counter "+self.__localDiCounterTestsId+" test result Transmission: Failed!!!")
