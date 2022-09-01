@@ -30,6 +30,11 @@
 ##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
 ##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3
+##  Modified by cmj2022Sep01... remove self.__tempFile.close() after exception statement in
+##                              getQueryUrl (line 53)
+##                              getWriteUrl (line 81)
+##                              getProductionQueryUrl (line 218)
+##                              getProductionWriteUrl (line 236)
 ##
 class databaseConfig(object):
   def __init__(self):
@@ -38,7 +43,7 @@ class databaseConfig(object):
     self.__extrusionKey = ' '
 ## -------------------------------------------------------------
   def getVersion(self):
-    self.__version="2020Jul13"
+    self.__version="2022Sep01"
     return self.__version
 ## -------------------------------------------------------------
   def setDebugOn(self):
@@ -58,7 +63,7 @@ class databaseConfig(object):
       self.__tempFile=open('../CrvUtilities/86DevelopmentQueryUrl.txt','r')
       if (self.__cmjDebug == 1): print('..databaseConfig.getQueryUrl()... after open')
     except Exception as e:
-      self.__tempFile.close()
+      ##cmj2022Sep01 self.__tempFile.close()
       print('exception: %s' % e)
       print('file not found: contact database administrators \n')
       print('the program cannot access the database... \n')
@@ -78,7 +83,7 @@ class databaseConfig(object):
       self.__tempFile=open('../CrvUtilities/86DevelopmentWriteUrl.txt','r')
       if (self.__cmjDebug == 1): print('..databaseConfig::getWriteUrl()... after open')
     except Exception as e:
-      self.__tempFile.close()
+      ##cmj2022Sep01 self.__tempFile.close()
       print('exception: %s' % e)
       print('file not found: contact database administrators \n')
       print('the program cannot access the database... \n')
@@ -215,7 +220,7 @@ class databaseConfig(object):
       if (self.__cmjDebug == 1): print('..databaseConfig.getProductionQueryUrl()... after open')
     except Exception as e:
       print('exception: %s' % e)
-      self.__tempFile.close()
+      ##cmj2022Sep01 self.__tempFile.close()
       print('file not found: contact database administrators \n')
       print('the program will cannot access the database... \n')
       return 'from: databaseConfig.getProductionQueryUrl():::No_Url_Found'
@@ -233,7 +238,7 @@ class databaseConfig(object):
       self.__tempFile=open('../CrvUtilities/86ProductionWriteUrl.txt','r')
       if (self.__cmjDebug == 1): print('..databaseConfig::getProductionWriteUrl()... after open')
     except Exception as e:
-      self.__tempFile.close()
+      ##cmj2022Sep01 self.__tempFile.close()
       print('exception: %s' % e)
       print('file not found: contact database administrators \n')
       print('the program cannot access the database... \n')
