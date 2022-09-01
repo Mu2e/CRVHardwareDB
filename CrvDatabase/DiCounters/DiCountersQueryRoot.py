@@ -41,6 +41,12 @@
 ##  Modified by cmj2021Jan22... save character strings in the root trees
 ##  Modified by cmj2022Jan22... add debug level button to GUI
 ##  Modified by cmj2022Jan22... make production database default
+##  Modified by cmj2022Aug30... make production database default inside askDiCounter class (line 93)
+##  Modified by cmj2022Aug30... Add functions setProductionDatabase and setDevelopmentDatabase in
+##                              class multiWindow (line 911-924) and add option to select database
+##                              in __main__ (lines 1005,1006)
+##  Modified by cmj2022Aug30... getDiCountersFromDatabase: change 4th argument to query (where) to
+##                              order the returned items by descending test_date (line 195)
 ##
 ##   Merrill Jenkins
 ##   Department of Physics
@@ -89,6 +95,7 @@ class askDiCounter(object):
     self.__cmjDebug = initialDebug
     if(self.__cmjDebug != 0): print("askDiCounter__init__askDiCounter... enter \n")
     self.__database_config  = databaseConfig()
+    self.__database_config.setDebugOn()  ## cmj2022Aug30
 ##  Set the stastitics box
     gStyle.SetOptStat("nemruoi")
 ##  This information is stored such that we need nested dictionaries......
@@ -182,13 +189,13 @@ class askDiCounter(object):
     self.__diCounterResults = []
     self.__table = "di_counter_tests"
     self.__fetchThese = "di_counter_id,test_date,sipm_location,current_amps,light_source,flash_rate_hz,temperature,distance,distance_vector,sipm_test_voltage,comments"
-    self.__fetchCondition = "test_date:gt:2017-01-01"
+    self.__fetchCondition = "test_date:gt:2017-01-01"  ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(self.__cmjDebug > 0):
       print((".... getSipmsBatchesFromDatabase: self.__queryUrl   = %s \n") % (self.__queryUrl))
       print((".... getSipmsBatchesFromDatabase: self.__table                = %s \n") % (self.__table))
       print((".... getSipmsBatchesFromDatabase: self.__fetchThese           = %s \n") % (self.__fetchThese))
-    self.__diCounterResults = self.__getDiCounterValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
+    self.__diCounterResults = self.__getDiCounterValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-test_date')  ## cmj2022Aug30
     if(self.__cmjDebug > 4): print(("__askDicounter__getDiCounterFromDatabase... self.__diCounterResults = %s \n") % (self.__diCounterResults))
     if(self.__cmjDebug > 5):
       for self.__l in self.__diCounterResults:
@@ -907,6 +914,22 @@ class multiWindow(Frame):
     self.__quitNow = Quitter(self,0,self.__col)
     self.__quitNow.grid(row=self.__firstRow,column=0,sticky=W)
 ##
+## --------------------------------------------------------
+##  cmj2022Aug30
+##  Setup the production database
+  def setProductionDatabase(self):
+    self.__myDiCounters.setupProductionDatabase()
+    print("__multiWindow__setProductionDatabase: set production database \n")
+    return
+##
+## --------------------------------------------------------
+##  cmj2022Aug30
+##  Setup the production database
+  def setDevelopmentDatabase(self):
+    self.__myDiCounters.setupDevelopmentDatabase()
+    print("__multiWindow__setDevelopmentDatabase: set development database \n")
+    return
+##
 #####################################################################################
 ##
 ##  Setup local control: set debug level
@@ -984,6 +1007,10 @@ if __name__ == '__main__':
   myMultiForm = multiWindow(root,0,0)
   myMultiForm.turnOnDebug(options.debugMode)
   if(options.debugMode != 0): myMultiForm.turnOnDebug(options.debugMode)
+  ## cmj2022Aug30...
+  myMultiForm.setProductionDatabase()
+  if(options.database == 'development'): myMultiForm.setDevelopmentDatabase()
+  ## cmj2022Aug30...
   myMultiForm.grid()
   root.mainloop()
 

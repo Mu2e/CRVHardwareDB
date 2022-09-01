@@ -64,7 +64,14 @@
 ##
 ##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
-##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3##  
+##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3
+##  Modified by cmj2022Sep01... replaced print(("__crvModules__ .... ")()) to  print(("__crvModules__ .... ")) in:
+##                              sendModuleToDatabase (line 437)
+##                              sendModuleTestsToDatabase (line 513)
+##                              writeCounterMotherBoards (line 680)
+##                              writeDiCounterSipms (line 711)
+##                              writeDiCounterSipms (line 764)
+## 
 ##
 sendDataBase = 0  ## zero... don't send to database
 #
@@ -82,7 +89,7 @@ from cmjGuiLibGrid import *       ## 2020Aug03
 from generalUtilities import generalUtilities
 
 ProgramName = "Modules.py"
-Version = "version2021.05.12"
+Version = "version2022.09.01"
 
 
 ##############################################################################################
@@ -427,7 +434,7 @@ class crvModules(object):
           print(self.__text)
           break
         elif self.__password == '':
-          print(('XXXX __crvModules__::sendModuleToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+          print(('XXXX __crvModules__::sendModuleToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))  ## cmj2022Aug31 remove ()
           break
         else:
           print("XXXX __crvModules__::sendModuleToDatabase:  Counter Transmission: Failed!!!")
@@ -502,7 +509,7 @@ class crvModules(object):
             print(self.__text)
             break
           elif self.__password == '':
-            print(('XXXX __crvModules__::sendModuleTestsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+            print(('XXXX __crvModules__::sendModuleTestsToDatabase: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')) ## cmj2022Sep1
             break
           else:
             print("XXXX __crvModules__::sendModuleTestsToDatabase:  Counter Transmission: Failed!!!")
@@ -576,7 +583,7 @@ class crvModules(object):
               print(self.__text)
               break
             elif self.__password == '':
-              print(('XXXX__crvModules__::writeDiCounterLayerPosition: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+              print(('XXXX__crvModules__::writeDiCounterLayerPosition: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))
               break
             else:
               print("XXXX__crvModules__::writeDiCounterLayerPosition:  Counter Transmission: Failed!!!")
@@ -669,7 +676,7 @@ class crvModules(object):
                 print(self.__text)
                 break
               elif self.__password == '':
-                print(('XXXX__crvModules__::writeCounterMotherBoards: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+                print(('XXXX__crvModules__::writeCounterMotherBoards: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')) ## cmj2022Sep1
                 break
               else:
                 print("XXXX__crvModules__::writeCounterMotherBoards:  Cmb/Smb Transmission: Failed!!!")
@@ -761,7 +768,7 @@ class crvModules(object):
                 print(self.__text)
                 break
               elif self.__password == '':
-                print(('XXXX__crvModules__::writeDiCounterSipms: Test mode... DATA WILL NOT BE SENT TO THE DATABASE')())
+                print(('XXXX__crvModules__::writeDiCounterSipms: Test mode... DATA WILL NOT BE SENT TO THE DATABASE'))  ## cmj2022Sep1
                 break
               else:
                 print("XXXX__crvModules__::writeDiCounterSipms:  Counter Transmission: Failed!!!")

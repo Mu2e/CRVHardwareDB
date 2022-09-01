@@ -49,6 +49,20 @@
 ##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##  Modified by cmj2022Jan25... save character string in root tree with python3
 ##  Modified by cmj2022Jan28... replace "count(*)" with single view table as per Steve's Email 2022Jan28 11:10 AM
+##  Modified by cmj2022Sep01... Was sampling development database... change default to production database.se
+##                              in class Multiwindow__init__ (line 100)
+##                              and default in parser in if(__name__ == __main__) line 1521
+##  Modified by cmj2022Sep01... Removed potential bug in ".query" calls to dataloader...
+##                              The fourth argument ("where") details the order that the returned
+##                              values are sorted under.... It was sorted by the whole fetch list...
+##                              Now the returned list is sorted by "-create_time", which is the create_time
+##                              in descending order... This was done in 
+##                              getSipmsFromDatabase (lines 459, 461)
+##                              getSipmsPackNumberFromDatabase (lines 520, 524) 
+##                              getIvsVforSipm (lines 577, 579)
+## Modified by cmj2022Sep01...  Change print statement string in getSipmBatchesFromDatabase, lines 401-415
+## Modified by cmj2022Sep01...  Change print statement string in getIvsVforSipm, lines 548-598
+##                              
 ##
 from tkinter import *         # get widget class
 import tkinter as tk
@@ -77,7 +91,7 @@ from array import array
 ##
 ##
 ProgramName = "SipmQueryRoot"
-Version = "version2022.01.28"
+Version = "version2022.09.01"
 ##
 ##
 ##
@@ -90,7 +104,7 @@ class multiWindow(Frame):
   def __init__(self,parent=NONE, myRow = 0, myCol = 0):
     Frame.__init__(self,parent)
     self.__database_config  = databaseConfig()
-    self.setupDevelopmentDatabase()  ## set up communications with database
+    self.setupProductionDatabase()  ## set up communications with database ## cmj2022Sep01
     self.__cmjPlotDiag = 2 ## default... not debug messages printed out
                   ##  Limit number of sipms read in for tests.... set negative to read all
     self.__cmjTest = 0      ## set this to 1 to look at 10 sipm_id's
@@ -385,23 +399,23 @@ class multiWindow(Frame):
     self.__localSipmBatchValues = []
     self.__table = "sipm_batches"
     self.__fetchThese = "po_number"
-    self.__fetchCondition = 'date_received:gt:2015-08-15'  ## works!!!
+    self.__fetchCondition = 'date_received:gt:2015-08-15'  ## works!!! ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(self.__cmjPlotDiag > 3):
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__queryUrl   = %s \n") % (self.__queryUrl))
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__table                = %s \n") % (self.__table))
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__fetchThese           = %s \n") % (self.__fetchThese))
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__queryUrl   = %s \n") % (self.__queryUrl))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__table                = %s \n") % (self.__table))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__fetchThese           = %s \n") % (self.__fetchThese))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
     if(self.__cmjTest == 0):
       self.__localSipmBatchValues = self.__getSipmBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
     else:
       self.__localSipmBatchValues = self.__getSipmBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese,limit=self.__cmjTestLimit)
     if(self.__cmjPlotDiag > 3): 
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__getSipmBatchValues   = %s \n") % (self.__getSipmBatchValues))
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__table                = %s \n") % (self.__table))
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__fetchThese           = %s \n") % (self.__fetchThese))
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
-      print(("__multiWindow__:getSipmBatchesFromDatabasegetSipmsBatchesFromDatabase: self.__localSipmBatchValues = %s \n") % (self.__localSipmBatchValues))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__getSipmBatchValues   = %s \n") % (self.__getSipmBatchValues))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__table                = %s \n") % (self.__table))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__fetchThese           = %s \n") % (self.__fetchThese))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
+      print(("__multiWindow__:getSipmBatchesFromDatabase: self.__localSipmBatchValues = %s \n") % (self.__localSipmBatchValues))
     self.__numberOfBatches = len(self.__localSipmBatchValues)
     xx = self.__progressBarCount.get()  ## get current count value for progress bar
     self.__progressBarCount.set(xx+10)  ## increment that value
@@ -446,9 +460,9 @@ class multiWindow(Frame):
         ##   list members that are either white characters, quotations or forward slashes.. They must be
         ##   filtered out before sending them to the "unpackSipms" member function....
         if(self.__cmjTest == 0):
-          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
+          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time')  ## cmj2022Sep01
         else:
-          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese,limit = self.__cmjTestLimit) 
+          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time',limit = self.__cmjTestLimit) ## cmj2022Sep01
         ##xx1 = self.__progressBarCount.get()
         ##self.__progressBarCount(xx1+10)
         self.__singleSipmLine = []
@@ -504,11 +518,11 @@ class multiWindow(Frame):
         ##   list members that are either white characters, quotations or forward slashes.. They must be
         ##   filtered out before sending them to the "unpackSipms" member function....
         if(self.__cmjTest == 0):
-          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
+          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time')  ## cmj2022Sep01
           if (self.__sipmIdCount > 4) : break
         else:
           print(".... getSipmsPackNumberFromDatabase      WARNING: LIMIT TO 5 CALLS!!!!!!")
-          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese,limit=self.__cmjTestLimit)
+          self.__localSipmResult = self.__getSipmValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time',limit=self.__cmjTestLimit) ## cmj2022Sep01
           if (self.__sipmIdCount > 4) : break
         xx = self.__progressBarCount.get()  ## get current count value for progress bar
         self.__progressBarCount.set(xx+10)  ## increment that valu
@@ -533,14 +547,14 @@ class multiWindow(Frame):
 ##      Make querries about to the data base to get the locally measured I vs V curves
   def getIvsVforSipm(self,tempBatch):
     print(" ------------------------------------------------------------- ")
-    if(self.__cmjPlotDiag > 0): print("__multiWindow__unpackSipmgetIvsVforSipm: Enter")
-    if(self.__cmjPlotDiag > 1): print(("__multiWindow__unpackSipmgetIvsVforSipm: tempBatch = %s") % (tempBatch))
+    if(self.__cmjPlotDiag > 0): print("__multiWindow__getIvsVforSipm: Enter")
+    if(self.__cmjPlotDiag > 1): print(("__multiWindow__getIvsVforSipm: tempBatch = %s") % (tempBatch))
     self.__singleSipmNumber = []
     self.__singleSipmNumber = self.getSipmNumberFromPo(tempBatch)  ## get list of Sipms with same PO
     if(self.__cmjPlotDiag > 4) : 
       print (" ------------------------------------------------------------ ")
-      print(("__multiWindow__unpackSipmgetIvsVforSipm: List of Sipms with PO Number = %s \n") %(tempBatch))
-      print(("__multiWindow__unpackSipmgetIvsVforSipm: len(self.__singleSipmNumber) = %d ") % (len(self.__singleSipmNumber)))
+      print(("__multiWindow__getIvsVforSipm: List of Sipms with PO Number = %s \n") %(tempBatch))
+      print(("__multiWindow__getIvsVforSipm: len(self.__singleSipmNumber) = %d ") % (len(self.__singleSipmNumber)))
       for self.__l in sorted(self.__singleSipmNumber):
         print(("__multiWindow__unpackSipmgetSipmsFromDatabase: self.__l  = %s ") % (self.__l))
     self.__getSipmIvsVvalues = DataQuery(self.__queryUrl)
@@ -549,38 +563,38 @@ class multiWindow(Frame):
     ## loop over all SipmId's with the sampe PO number
     for self.__localSipmNumber in self.__singleSipmNumber:
       if(self.__localSipmNumber != "NULL"):
-        print(("__multiWindow__unpackSipmgetIvsVforSipm: get sipm_id  = %s") % (self.__localSipmNumber))
+        print(("__multiWindow__getIvsVforSipm: get sipm_id  = %s") % (self.__localSipmNumber))
         self.__localSipmIvsVresult = []
         self.__fetchCondition = "sipm_id:eq:"+str(self.__localSipmNumber)
         if (self.__cmjPlotDiag > 4):
-          print(("__multiWindow__unpackSipmgetIvsVforSipm: self.__table  = %s \n") % (self.__table))
-          print(("__multiWindow__unpackSipmgetIvsVforSipm: self.__fetchThese  = %s \n") % (self.__fetchThese))
-          print(("__multiWindow__unpackSipmgetIvsVforSipm: self.__fetchCondition = %s \n") % (self.__fetchCondition))
+          print(("__multiWindow__getIvsVforSipm: self.__table  = %s \n") % (self.__table))
+          print(("__multiWindow__getIvsVforSipm: self.__fetchThese  = %s \n") % (self.__fetchThese))
+          print(("__multiWindow__getIvsVforSipm: self.__fetchCondition = %s \n") % (self.__fetchCondition))
         ##  This call returns a list with the database entries for all lines with the same sipm_id plus other
         ##   list members that are either white characters, quotations or forward slashes.. They must be
         ##   filtered out before sending them to the "unpackSipms" member function....
         if(self.__cmjTestLimit == 0):
-          self.__localSipmIvsVresult = self.__getSipmIvsVvalues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
+          self.__localSipmIvsVresult = self.__getSipmIvsVvalues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time') ## cmj2022Sep01
         else:
-          self.__localSipmIvsVresult = self.__getSipmIvsVvalues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese,limit=self.__cmjTestLimit)
+          self.__localSipmIvsVresult = self.__getSipmIvsVvalues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time',limit=self.__cmjTestLimit) ## cmj2022Sep01
         xx = self.__progressBarCount.get()  ## get current count value for progress bar
         self.__progressBarCount.set(xx+10)  ## increment that value
         self.__singleSipmIvsVline = []
-        if(self.__cmjPlotDiag > 4): print(("__multiWindow__unpackSipmgetIvsVforSipm: len(self.__localSipmIvsVresult) = %d, self.__localSipmIvsVresult  = %s \n") % (len(self.__localSipmIvsVresult),self.__localSipmIvsVresult))
+        if(self.__cmjPlotDiag > 4): print(("__multiWindow__getIvsVforSipm: len(self.__localSipmIvsVresult) = %d, self.__localSipmIvsVresult  = %s \n") % (len(self.__localSipmIvsVresult),self.__localSipmIvsVresult))
         self.__mcount = 0
         self.__ncount = 0
         for self.__mline in sorted(self.__localSipmIvsVresult):
           xx = self.__progressBarCount.get()  ## get current count value for progress bar
           self.__progressBarCount.set(xx+10)  ## increment that value
           self.update() ## update the progress bar...
-          if(self.__cmjPlotDiag > 0): print(("__multiWindow__unpackSipmgetIvsVforSipm: (self.__singleSipmIvsVline, all) ncount = %d,  len(self.__mline) = %d,  self.__mline  = %s \n") % (self.__ncount,len(self.__mline),self.__mline))
+          if(self.__cmjPlotDiag > 0): print(("__multiWindow__getIvsVforSipm: (self.__singleSipmIvsVline, all) ncount = %d,  len(self.__mline) = %d,  self.__mline  = %s \n") % (self.__ncount,len(self.__mline),self.__mline))
           if(len(self.__mline) > 0):
             self.__singleSipmIvsVline.append(self.__mline.rsplit(','))
-            if(self.__cmjPlotDiag > 0): print(("__multiWindow__unpackSipmgetIvsVforSipm: (self.__singleSipmIvsVline, filtered) mcount = %d, self.__mline  = %s \n") % (self.__mcount,self.__mline))
+            if(self.__cmjPlotDiag > 0): print(("__multiWindow__getIvsVforSipm: (self.__singleSipmIvsVline, filtered) mcount = %d, self.__mline  = %s \n") % (self.__mcount,self.__mline))
             self.__sipmIvsVresults.append(self.__mline)
             self.__mcount += 1
           self.__ncount += 1
-    if(self.__cmjPlotDiag > 0): print("__multiWindow__unpackSipmgetIvsVforSipm: Exit")
+    if(self.__cmjPlotDiag > 0): print("__multiWindow__getIvsVforSipm: Exit")
     return
 ##
 ##
@@ -1515,7 +1529,7 @@ if __name__ == '__main__':
   parser = optparse.OptionParser("usage: %prog [options] file1.txt \n")
   parser.add_option('--debug',dest='debugMode',type='int',default=0,help='set debug: 0 (off - default), 1 = on')
   parser.add_option('--test',dest='testMode',type='int',default=0,help='set test: 0 (off - default), 1 = on')
-  parser.add_option('--database',dest='database',type='string',default="development",help='development or production')
+  parser.add_option('--database',dest='database',type='string',default="production",help='development or production')
   options, args = parser.parse_args()
   print(("'__main__': options.debugMode = %s \n") % (options.debugMode))
   print(("'__main__': options.testMode = %s \n") % (options.testMode))
