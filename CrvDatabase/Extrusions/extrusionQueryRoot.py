@@ -34,6 +34,11 @@
 ##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
 ##  Modified by cmj2022Jan26... finally able to save character strings in root trees using python3
 ##  Modified by cmj2022Jan26... make production database default
+##  Modified by cmj2022Aug30... make production database default inside class  multiWindow (line 89)
+##  Modified by cmj2022Aud30... Fix sort in query(,,,where) to sort by "-batch_id" in getExtrusionsBatchesFromDatabase
+##                              (descending batch id) (line 264)
+##  Modified by cmj2022Aud30... Fix sort in query(,,,where) to sort by "-batch_id" in getExtrusionsBatchesFromDatabase
+##                              (descending batch id) (line 264)
 ##
 #!/usr/bin/env python
 ##
@@ -70,7 +75,7 @@ from array import array
 ##
 ##
 ProgramName = "extrusionQueryRoot"
-Version = "version2022.01.26"
+Version = "version2022.08.30"
 ##
 ##
 cmjPlotDiag = 0  #  plot diagnostic variable... set to non-zero to plot diagnostics....
@@ -85,7 +90,7 @@ class multiWindow(Frame):
     Frame.__init__(self,parent)
     self.__database_config  = databaseConfig()
     #self.__database_config.setDebugOn()  ## 2020Jul09... turn off these debugs!
-    self.setupDevelopmentDatabase()  ## set up communications with database
+    self.setupProductionDatabase()  ## set up communications with database  ## cmj2022Aug30
     self.__labelWidth = 25
     self.__entryWidth = 20
     self.__buttonWidth = 5
@@ -258,13 +263,14 @@ class multiWindow(Frame):
     self.__localExtrusionBatchValues = []
     self.__table = "extrusion_batches"
     self.__fetchThese = "batch_id,average_ref_counts,stdev_ref_counters,percent_ref_counters,average_light_yield_cnt,stdev_light_yield_cnt,percent_light_yield_cnt,create_time"
-    self.__fetchCondition = "create_time:ge:2017-05-15"
+    self.__fetchCondition = "create_time:ge:2017-05-15" ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(cmjPlotDiag > 1): print(("===========> getExtrusionsBatchesFromDatabase %s %s %s \n" %(self.__database,self.__table,self.__fetchThese)))
     #self.__localExtrusionBatchValues = self.__getExtrusionBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
     ## cmj2018Mar26
     for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__localExtrusionBatchValues = self.__getExtrusionBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      ## cmj2022Aug30 self.__localExtrusionBatchValues = self.__getExtrusionBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      self.__localExtrusionBatchValues = self.__getExtrusionBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-batch_id") ## cmj2022Aug30
       if (self.__localExtrusionBatchValues != -9999) : break
     ## cmj2018Mar26
     if(cmjPlotDiag > 1): print((" getExtrusionsBatchesFromDatabase: self.__extrusionBatchValues = %s \n" %(self.__localExtrusionBatchValues)))
@@ -286,7 +292,8 @@ class multiWindow(Frame):
     #self.__extrusionResults = self.__getExtrusionValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese,True)
     ## cmj2018Mar26
     for n in range(0,self.__maxTries):            # sometimes the database does not answer... give it a few tries!
-      self.__extrusionResults = self.__getExtrusionValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese)
+      ## cmj2022Aug30 self.__extrusionResults = self.__getExtrusionValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese)
+      self.__extrusionResults = self.__getExtrusionValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-extrusion_id")  ## cmj2022Aug30
       if(cmjPlotDiag > 1): print((("XXXXXXXgetExtrusionsFromDatabase: WARNING!!!  loop over tries to database: n = %s  %s \n") % (n, self.__extrusionResults)))
       if (self.__extrusionResults[0] != -9999) : break
     ## cmj2018Mar26

@@ -569,7 +569,7 @@ class multiWindow(Frame):
     self.__localFebIdsValues = []
     self.__table = "front_end_boards"
     self.__fetchThese = "feb_id"
-    self.__fetchCondition = "create_time:ge:2017-05-15"
+    self.__fetchCondition = "create_time:ge:2017-05-15"  ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(self.__cmjDebug > 1): print(("...multiWindow::getAllFebsFromDatabase %s %s %s \n" %(self.__database,self.__table,self.__fetchThese)))
     ## cmj2018Mar26

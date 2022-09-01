@@ -50,7 +50,16 @@
 ##  Modified by cmj2022Jan20... finally able to save character strings in root trees using python3
 ##  Modified by cmj2021Jan22... save character strings in the root trees
 ##  Modified by cmj2022Jan22... add debug level button to GUI
-##  Modified by cmj2022Jan22... make production database default
+##  Modified by cmj2022Jan22... make production database default (in __main__)
+##  Modifeid by cmj2022Aug30... make production database default in class __multiWindow (line 95)
+##  Modified by cmj2022Aug31... Corrected variable in setupProductionDatabase: self.__queryurl -> self.__queryUrl (line 274)
+##  Modified by cmj2022Aug31... Removed unused functions getFibersFromDatabase and unpackFibers (removed orignal lines 660-786)
+##  Modified by cmj2022Aug31... Changed 4th argument of .query to sort on "-fiber_id" in getLocalAttenuationLength (line 95)
+##  Modified by cmj2022Aug31... Changed 4th argument of .query to sort on "-fiber_id" in getLocalAttenuationVsWavelength (line 362)
+##  Modified by cmj2022Aug31... Changed 4th argument of .query to sort on "-fiber_id" in getLocalAttenuationLength (line 435)
+##  Modified by cmj2022Aug31... Changed 4th argument of .query to sort on "-fiber_id" in getVendorAttenuationLength (line 509)
+##  Modified by cmj2022Aug31... Changed 4th argument of .query to sort on "-fiber_id" in getVendorFiberMeasurementsFromDatabase (line 581)
+##  Modified by cmj2022Aug31... Changed 4th argument of .query to sort on "-fiber_id" in getLocalFiberMeasurementsFromDatabase (line 657)
 ##
 from tkinter import *         # get widget class
 import sys
@@ -76,7 +85,7 @@ from array import array
 ##
 ##
 ProgramName = "fiberQueryRoot"
-Version = "version2022.01.21"
+Version = "version2022.08.30"
 ##
 ##
 cmjPlotDiag = 0  #  plot diagnostic variable... set to non-zero to plot diagnostics....
@@ -92,7 +101,7 @@ class multiWindow(Frame):
     self.__cmjDebug = 0
     self.__database_config  = databaseConfig()
     #self.__database_config.setDebugOn()
-    self.setupDevelopmentDatabase()  ## set up communications with database
+    self.setupProductionDatabase()  ## set up communications with database
     self.__labelWidth = 25
     self.__entryWidth = 20
     self.__buttonWidth = 5
@@ -262,7 +271,7 @@ class multiWindow(Frame):
     self.__whichDatabase = 'production'
     print("...multiWindow::getFromProductionDatabase... get from production database \n")
     ## cmj2022Jan18 self.__url = self.__database_config.getProductionQueryUrl()
-    self.__queryurl = self.__database_config.getProductionQueryUrl() ## cmj2022Jan2018
+    self.__queryUrl = self.__database_config.getProductionQueryUrl() ## cmj2022Jan2018
 ##
 #####################################################################################
 ##
@@ -352,13 +361,14 @@ class multiWindow(Frame):
     self.__table = "fiber_local_spect_attenuations"
     self.__fetchThese = "fiber_id,test_timestamp,wavelength_nm,local_attenuation_mm"
     #self.__fetchThese = "fiber_id"
-    self.__fetchCondition = "create_time:ge:2017-05-15"
+    self.__fetchCondition = "create_time:ge:2017-05-15" ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(self.__cmjDebug > 1): print("===========> getLocalAttenuationVsWavelength %s %s %s \n" %(self.__database,self.__table,self.__fetchThese))
     #self.__localWavelengthAttenuationValues = self.__getlocalWavelengthAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
     ## cmj2018Mar26
     for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__localWavelengthAttenuationValues = self.__getlocalWavelengthAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      ## cmj2022Aug30 self.__localWavelengthAttenuationValues = self.__getlocalWavelengthAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      self.__localWavelengthAttenuationValues = self.__getlocalWavelengthAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-fiber_id")  ## cmj2022Aug30
       if (self.__localWavelengthAttenuationValues != -9999) : break
     ## cmj2018Mar26
     if(self.__cmjDebug > 5): print(" getLocalAttenuationVsWavelength: self.__fiberValues = %s \n" %(self.__localWavelengthAttenuationValues))
@@ -424,13 +434,14 @@ class multiWindow(Frame):
     self.__table = "fiber_attenuation_local_lengths"
     self.__fetchThese = "fiber_id,test_timestamp,fiber_distance,fiber_adc"
     #self.__fetchThese = "fiber_id"
-    self.__fetchCondition = "create_time:ge:2018-06-01"  ## exclude Steve's test entry
+    self.__fetchCondition = "create_time:ge:2018-06-01"  ## exclude Steve's test entry ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(self.__cmjDebug > 1): print("===========> getLocalAttenuationLength %s %s %s \n" %(self.__database,self.__table,self.__fetchThese))
     #self.__localAttenuationValues = self.__getlocalAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
     ## cmj2018Mar26
     for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__localAttenuationValues = self.__getlocalAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      ## cmj2022Aug30 self.__localAttenuationValues = self.__getlocalAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      self.__localAttenuationValues = self.__getlocalAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-fiber_id") ## cmj2022Aug30
       if (self.__localAttenuationValues != -9999) : break
     ## cmj2018Mar26
     if(self.__cmjDebug > 5): print(".... getLocalAttenuationLength: self.__fiberValues = %s \n" %(self.__localAttenuationValues))
@@ -496,13 +507,14 @@ class multiWindow(Frame):
     self.__table = "fiber_attenuation_vendor_lengths"
     self.__fetchThese = "fiber_id,fiber_test_date,fiber_distance,fiber_light_output_mv"
     #self.__fetchThese = "fiber_id"
-    self.__fetchCondition = "create_time:ge:2018-06-01"  ## exclude Steve's test entry
+    self.__fetchCondition = "create_time:ge:2018-06-01"  ## exclude Steve's test entry ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(self.__cmjDebug > 1): print("===========> getVendorAttenuationLength %s %s %s \n" %(self.__database,self.__table,self.__fetchThese))
     #self.__vendorAttenuationValues = self.__getVendorAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
     ## cmj2018Mar26
     for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__vendorAttenuationValues = self.__getlocalAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      ## cmj2022Aug30 self.__vendorAttenuationValues = self.__getlocalAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      self.__vendorAttenuationValues = self.__getlocalAttenuationValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-fiber_id")  ## cmj2022Aug30
       if (self.__vendorAttenuationValues != -9999) : break
     ## cmj2018Mar26
     if(self.__cmjDebug > 5): print(".... getVendorAttenuationLength: self.__vendorAttenuationValues = %s \n" %(self.__vendorAttenuationValues))
@@ -552,138 +564,6 @@ class multiWindow(Frame):
       print("... XX unpackVendorAttenuationVsLength: Exit\n")
 ##
 ##
-##
-###################################################################################
-###################################################################################
-###################################################################################
-##
-##            Vendor supplied measurements    
-## -------------------------------------------------------------------
-##      Make querries to get all vendor measurements of the fibers from the data base
-##
-  def getFibersFromDatabase(self):
-    self.__getFiberValues = DataQuery(self.__queryUrl)
-    print((".... getFibersFromDatabase: self.__queryUrl   = %s \n") % (self.__queryUrl))
-    self.__localFiberValues = []
-    self.__table = "fibers"
-    #elf.__fetchThese = "batch_id,average_ref_counts,stdev_ref_counters,percent_ref_counters,average_light_yield_cnt,stdev_light_yield_cnt,percent_light_yield_cnt,create_time"
-    self.__fetchThese = "fiber_id,production_date,initial_length,current_length,fiber_type,vendor_diameter_micron,vendor_light_yield,comments"
-    ##self.__fetchThese = "fiber_id,production_date,initial_length,current_length,fiber_type,diameter_micron,diameter_sigma_micron,eccentricty,attenuation_length_cm,attenuation_voltage_at256cm_mv,comments"
-    self.__fetchCondition = "create_time:ge:2017-05-15"
-    self.__numberReturned = 0
-    if(self.__cmjDebug > 1): print("===========> getFibersFromDatabase %s %s %s \n" %(self.__database,self.__table,self.__fetchThese))
-    #self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
-    ## cmj2018Mar26
-    for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
-      if (self.__localFiberValues != -9999) : break
-    ## cmj2018Mar26
-    if(self.__cmjDebug > 1): print(" getFibersFromDatabase: self.__fiberValues = %s \n" %(self.__localFiberValues))
-    self.__numberOfFibers = len(self.__localFiberValues)
-    if(self.__cmjDebug != 0):
-      for self.__l in self.__localFiberValues:
-        print(self.__l)
-    return self.__localFiberValues
-##
-## --------------------------------------------------------------
-##      Unpack the vendor supplied database information for plotting,etc
-  def unpackFibers(self,tempFiber):
-    if(self.__cmjDebug > 1) : print("...  unpackFibers: Enter\n")
-    if(self.__cmjDebug > 2) : print(("... unpackFibers: tempFiber = %s \n") % tempFiber)
-    if(tempFiber[0] == -9999):
-      print("...  unpackFibers: WARNING!!! Fiber did not unpack! \n") 
-      print(("...  unpackFibers: tempFiber = %s \n") % (tempFiber))
-      return
-    for self.__record in tempFiber:
-      self.__item = []
-      self.__item = self.__record.rsplit(',')
-      if (self.__item[0] != ""):
-        self.__tempFiberId = self.__item[0]
-        self.__tempFiberProductionDate = self.__item[1]
-        self.__tempFiberInitialLength = float(self.__item[2])
-        self.__tempFiberCurrentLength = float(self.__item[3])
-        self.__tempFiberType = self.__item[4]
-        self.__tempFiberDiameter = self.__item[5]
-        self.__tempFiberSigma = self.__item[6]
-        self.__tempFiberEccentricity = self.__item[7]
-        self.__tempFiberAttenuationLength = self.__item[8]
-        self.__tempFiberAttenuationVoltage256cm = self.__[9]
-        self.__tempComment = self.__item[10]
-        if(not self.__item[5]):
-          self.__tempFiberVendorDiameter = float(self.__item[5])
-        else:
-          self.__tempFiberVendorDiameter = float(-9999.99)
-        self.__tempFiberVendorLightYield = float(self.__item[6])
-        self.__tempFiberVendorComments = self.__item[7]
-        if(self.__cmjDebug > 2):  ## diagnostic print statements
-          print("unpackFibers ........ New Counter ............ \n")
-          print(("... self.__item = %s \n") % self.__item)
-          print(("... self.__tempFiberId = %s \n") % self.__tempFiberId)
-        self.__fiberId[self.__tempFiberId]     = self.__tempFiberId
-        self.__fiberProductionDate[self.__tempFiberId] = self.__tempFiberProductionDate
-        self.__fiberInitialLength[self.__tempFiberId]      = float(self.__tempFiberInitialLength)
-        self.__fiberCurrentLength[self.__tempFiberId] = float(self.__tempFiberCurrentLength)
-        self.__fiberType[self.__tempFiberId] = self.__tempFiberType
-        self.__fiberVendorAttenuation[self.__tempFiberId] = float(self.__tempFiberVendorAttenuation)
-        self.__fiberVendorComments[self.__tempFiberId] = self.__tempFiberVendorComments
-##            Load arrays for root files....vendor
-        self.__plotFiberId.append(self.__tempFiberId)
-        self.__plotFiberProductionDate.append(self.__tempFiberProductionDate)
-        self.__plotFiberInitialLength.append(float(self.__tempFiberInitialLength))
-        self.__plotFiberCurrentLength.append(float(self.__tempFiberCurrentLength))
-        self.__plotFiberType.append(self.__tempFiberType)
-        self.__plotFiberVendorAttenuation.append(float(self.__tempFiberVendorAttenuation))
-        self.__plotFiberVendorAttenuationVoltage256cm = float(self.__tempFiberAttenuationVoltage256cm)
-        self.__plotFiberVendorDiameter.append(float(self.__tempFiberVendorDiameter))
-        self.__plotFiberVendorSigma = float(self.__tempFiberSigma)
-        self.__plotFiberVendorEccentricity = float(self.__tempFiberEccentricity)
-        #self.__plotFiberVendorLightYield.append(float(self.__tempFiberVendorLightYield))
-        self.__plotFiberVendorComments.append(self.__tempFiberVendorComments)
-##
-    if(self.__cmjDebug > -1):            ## diangonstic print statements
-      print(("unpackFibers ........len(self.__plotFiberId) = %d \n") % (len(self.__plotFiberId)))
-      print(("unpackFibers ........len(self.__plotFiberProductionDate) = %d \n") % (len(self.__plotFiberProductionDate)))
-      print(("unpackFibers ........len(self.__plotFiberInitialLength) = %d \n") % (len(self.__plotFiberInitialLength)))
-      print(("unpackFibers ........len(self.__plotFiberType) = %d \n") % (len(self.__plotFiberType)))
-      print(("unpackFibers ........len(self.__plotFiberVendorAttenuation) = %d \n") % (len(self.__plotFiberVendorAttenuation)))
-      print(("unpackFibers ........len(self.__plotFiberVendorDiameter) = %d \n") % (len(self.__plotFiberVendorDiameter)))
-      #print("unpackFibers ........len(self.__plotFiberVendorLightYield) = %d \n") % (len(self.__plotFiberVendorLightYield))
-      print(("unpackFibers ........len(self.__plotFiberComments) = %d \n") % (len(self.__plotFiberVendorComments)))
-      print("unpackFibers ........ ExtrusionId ............ \n")
-      for self.__m in list(self.__fiberId.keys()):
-        print(("...... self.__fiberId.keys()     = %s || self.__fiberId[%s] = %s \n")     % (self.__m,self.__m,self.__fiberId[self.__m]))
-###################################################################################
-###################################################################################
-###################################################################################
-##
-##            Vendor supplied measurements    
-## -------------------------------------------------------------------
-##      Make querries to get all vendor measurements of the fibers from the data base
-##
-  def getFibersFromDatabase(self):
-    self.__getFiberValues = DataQuery(self.__queryUrl)
-    if(self.__cmjDebug > 2): print((".... getFibersFromDatabase: self.__queryUrl   = %s \n") % (self.__queryUrl))
-    self.__localFiberValues = []
-    self.__table = "fibers"
-    #elf.__fetchThese = "batch_id,average_ref_counts,stdev_ref_counters,percent_ref_counters,average_light_yield_cnt,stdev_light_yield_cnt,percent_light_yield_cnt,create_time"
-    self.__fetchThese = "fiber_id,production_date,initial_length,current_length,fiber_type,vendor_diameter_micron,vendor_light_yield,comments"
-    ##self.__fetchThese = "fiber_id,production_date,initial_length,current_length,fiber_type,diameter_micron,diameter_sigma_micron,eccentricty,attenuation_length_cm,attenuation_voltage_at256cm_mv,comments"
-    self.__fetchCondition = "create_time:ge:2017-05-15"
-    self.__numberReturned = 0
-    if(self.__cmjDebug > 1): print("===========> getFibersFromDatabase %s %s %s \n" %(self.__database,self.__table,self.__fetchThese))
-    #self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
-    ## cmj2018Mar26
-    for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
-      if (self.__localFiberValues != -9999) : break
-    ## cmj2018Mar26
-    if(self.__cmjDebug > 1): print(" getFibersFromDatabase: self.__fiberValues = %s \n" %(self.__localFiberValues))
-    self.__numberOfFibers = len(self.__localFiberValues)
-    if(self.__cmjDebug != 0):
-      for self.__l in self.__localFiberValues:
-        print(self.__l)
-    return self.__localFiberValues
-##
 ###################################################################################
 ###################################################################################
 ###################################################################################
@@ -698,13 +578,14 @@ class multiWindow(Frame):
     self.__localFiberValues = []
     self.__table = "fiber_tests"
     self.__fetchThese = "fiber_id,test_timestamp,measurement,diameter_micron,diameter_sigma_micron,eccentricity,number_of_bumps_spool,number_of_bumps_km,attenuation_length_cm,attenuation_voltage_at256cm_mv,fiber_diameter_mm,light_yield,temperature_degc,comments"
-    self.__fetchCondition = "create_time:ge:2017-05-15&measurement:eq:vendor"
+    self.__fetchCondition = "create_time:ge:2017-05-15&measurement:eq:vendor" ## cmj2022Aug30... this date format correct... 
     self.__numberReturned = 0
     if(self.__cmjDebug > 1): print("===========> getVendorFiberMeasurementsFromDatabase %s %s %s \n" %(self.__database,self.__table,self.__fetchThese))
     #self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
     ## cmj2018Mar26
     for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      ##cmj2022Aug31 self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-fiber_id")  ## cnh2022Aug31
       if (self.__localFiberValues != -9999) : break
     ## cmj2018Mar26
     if(self.__cmjDebug > 1): print(" getVendorFiberMeasurementsFromDatabase: self.__fiberValues = %s \n" %(self.__localFiberValues))
@@ -793,13 +674,14 @@ class multiWindow(Frame):
     self.__localFiberValues = []
     self.__table = "fiber_tests"
     self.__fetchThese = "fiber_id,test_timestamp,diameter_micron,attenuation_length_cm,comments"
-    self.__fetchCondition = "create_time:ge:2017-05-15&measurement:eq:local"
+    self.__fetchCondition = "create_time:ge:2017-05-15&measurement:eq:local" ## cmj2022Aug30... this date format correct...
     self.__numberReturned = 0
     if(self.__cmjDebug > 1): print("===========> getLocalFiberMeasurementsFromDatabase %s %s %s \n" %(self.__database,self.__table,self.__fetchThese))
     #self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,self.__fetchThese,limit=10,echoUrl=True)
     ## cmj2018Mar26
     for n in range(0,self.__maxTries):            ## sometimes the datagbase does not answer.. give it a few tries!
-      self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      ## cmj2022Aug31 self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-"+self.__fetchThese)
+      self.__localFiberValues = self.__getFiberValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,"-fiber_id")  ## cmj2022Aug31
       if (self.__localFiberValues != -9999) : break
     if(self.__cmjDebug > 1): print(("===========> getLocalFiberMeasurementsFromDatabase/// self_localFiberValues %s \n") % (self.__localFiberValues))
     ## cmj2018Mar26

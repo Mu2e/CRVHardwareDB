@@ -9,14 +9,20 @@
 ##   2019Jan30
 ##  Modified by cmj2016Jun24.Sipm.py.. Add one more upward level for subdirectory to get to the utilities directory
 ##                        for dataloader... place the CRV utilities directory in the "crvUtilities" directory
-##      Modified by cmj2019Feb28... Change the default database to production.
-##   Modified by cmj2020Jul14... Add Progress bar
+##  Modified by cmj2019Feb28... Change the default database to production.
+##  Modified by cmj2020Jul14... Add Progress bar
 ##  Modified by cmj 2020Aug03 cmjGuiLibGrid2019Jan30 -> cmjGuiLibGrid
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
 ##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
 ##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3
 ##  Modified by cmj2021May12... replaced tabs with 6 spaces to convert to python 3
+##  Modified by cmj2022Aug31... Make production database default in multiWindow class (line 58)
+##  Modified by cmj2022Aug31... Fix bug in SetupProductionDatabase self.__url -> self.__queryUrl
+##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 1st change 4th argument in .query to sort by di_counter_id (line 648)
+##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 2nd change 4th argument in .query to sort by di_counter_id (line 684)
+##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 3rd change 4th argument in .query to sort cmb_id (line 721)
+##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 4th change 4th argument in .query to sort cmb_id (line 764) 
 ##
 #!/bin/env python
 from tkinter import *         # get widget class
@@ -38,7 +44,7 @@ from ModulesNonStaggered import *
 #import SipmMeasurements
 ##
 ProgramName = "checkModule.py"
-Version = "version2021.05.12"
+Version = "version2022.08.31"
 ##
 ##
 ##
@@ -54,7 +60,7 @@ class multiWindow(Frame):
     self.__defaultBackGroundColor = "gray"
     self.__masterFrame = Frame.__init__(self,parent)
     self.__database_config  = databaseConfig()
-    self.setupDevelopmentDatabase()  ## set up communications with database
+    self.setupProductionDatabase()  ## set up communications with database ## cmj2022Aug31
     self.__cmjDebug = 0 ## default... not debug messages printed out
                   ##  Limit number of sipms read in for tests.... set negative to read all
     self.__cmjTest = 0      ## set this to 1 to look at 10 sipm_id's
@@ -165,6 +171,7 @@ class multiWindow(Frame):
 ##      Add Control Bar at the bottom...
     self.__quitNow = Quitter(self.__frame0,0,self.__col)
     self.__quitNow.grid(row=self.__row,column=0,sticky=W)
+    return
 ##  
 ## -------------------------------------------------------------------
 ##  Define a frame to hold a graphic of the module side
@@ -182,6 +189,7 @@ class multiWindow(Frame):
     self.__canvas_frame3.config(width=self.__crvPicture.width()*self.__imageScale_canvas,height=self.__crvPicture.height()*self.__imageScale_canvas)
     self.__canvas_frame3.create_image(2,2,image=self.__crvPicture,anchor=NW)
     self.__canvas_frame3.grid(row=self.__row,column=self.__col)
+    return
 ##
 ## -------------------------------------------------------------------
 ##      Make querries to data base
@@ -191,6 +199,7 @@ class multiWindow(Frame):
     self.__whichDatabase = 'development'
     print("...multiWindow::getFromDevelopmentDatabase... get from development database \n")
     self.__queryUrl = self.__database_config.getQueryUrl()
+    return
 ##
 ## -------------------------------------------------------------------
 ##      Make querries to data base
@@ -199,12 +208,14 @@ class multiWindow(Frame):
     self.__group = "Sipm Tables"
     self.__whichDatabase = 'production'
     print("...multiWindow::getFromProductionDatabase... get from production database \n")
-    self.__url = self.__database_config.getProductionQueryUrl()
+    self.__queryUrl = self.__database_config.getProductionQueryUrl()  ## cmj2022Aug31
+    return
 ##
 ## -------------------------------------------------------------------
   def setDebugLevel(self,tempDebugLevel):
     self.__cmjDebug = tempDebugLevel
     print(("...multiWindow::getFromProductionDatabase... Set Debug Level to = %s \n") % (self.__cmjDebug))
+    return
 ##
 ## ------------------------------------------------------------------
 ##  Returns a color string for a Sipm Signoff status
@@ -524,7 +535,7 @@ class multiWindow(Frame):
     print(("--- StringEntryGet... after Button in getEntry = %s") %(self.__StringEntry_result))
     return self.__StringEntry_result
 ## -----------------------------------------------------------------------------------
-##    A class to add a row of  check boxes
+##    A method to add a row of  check boxes
   def myRowCheck(self,tempFrame, localSaveResults,myRow=0,myCol=0):
     self.__localFrame = tempFrame
     self.__checkTestSet = {} 
@@ -615,7 +626,7 @@ class multiWindow(Frame):
     self.__group = "Sipm Tables"
     self.__whichDatabase = 'production'
     print("...multiWindow::getFromProductionDatabase... get from production database \n")
-    self.__url = self.__database_config.getProductionQueryUrl()
+    self.__queryUrl = self.__database_config.getProductionQueryUrl() ## cmj2022Sep1
 ## --------------------------------------------------------------------
 ## --------------------------------------------------------------------
 ##      Make querries to get all sipm batches to data base
@@ -643,7 +654,8 @@ class multiWindow(Frame):
     for n in range(0,self.__maxTries):
       #print (".... getDiCountersInModule: Query Try: n = %s \n") % (n)
       try: 
-        self.__localDataBaseLine1_list = self.__getDiCounterValues.query(self.__database,self.__table1,self.__fetchThese1,self.__fetchCondition1,'-'+self.__fetchThese1)
+        ## cmj2022Aug31 self.__localDataBaseLine1_list = self.__getDiCounterValues.query(self.__database,self.__table1,self.__fetchThese1,self.__fetchCondition1,'-'+self.__fetchThese1)
+        self.__localDataBaseLine1_list = self.__getDiCounterValues.query(self.__database,self.__table1,self.__fetchThese1,self.__fetchCondition1,'-di_counter_id')
         sleep(self.__sleepTime)  ## give time for database to answer
         break ## exit loop
       except:
@@ -677,7 +689,8 @@ class multiWindow(Frame):
       self.__fetchCondition2 = 'di_counter_id:eq:'+self.__tempDiCounter  ## works!!!
       for n in range(0,self.__maxTries):
         try:
-          self.__localDataBaseLine2_list = self.__getCmbSmbValues.query(self.__database,self.__table2,self.__fetchThese2,self.__fetchCondition2,'-'+self.__fetchThese2)
+          ## cmj2022Aug31 self.__localDataBaseLine2_list = self.__getCmbSmbValues.query(self.__database,self.__table2,self.__fetchThese2,self.__fetchCondition2,'-'+self.__fetchThese2)
+          self.__localDataBaseLine2_list = self.__getCmbSmbValues.query(self.__database,self.__table2,self.__fetchThese2,self.__fetchCondition2,'-di_counter_id') ## cmj2022Aug31
           sleep(self.__sleepTime)  ## give time for database to answer)
           break  ## exit loop
         except:
@@ -713,7 +726,8 @@ class multiWindow(Frame):
           self.__fetchCondition3 = 'cmb_id:eq:CrvCmb-'+self.__tempCmbId
           for n in range(0,self.__maxTries):
             try:
-              self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
+              #cmj2022Aug31 self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
+              self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-cmb_id')   ## cmj2022Aug31
               sleep(self.__sleepTime)  ## give time for database to answer
               break
             except:
@@ -756,7 +770,8 @@ class multiWindow(Frame):
           self.__fetchCondition3 = 'cmb_id:eq:CrvCmb-'+self.__tempCmbId
           for n in range(0,self.__maxTries):
             try:
-              self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
+              ## cmj2022Aug31 self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-'+self.__fetchThese3)
+              self.__localDataBaseLine3_list = self.__getCmbSmbValues.query(self.__database,self.__table3,self.__fetchThese3,self.__fetchCondition3,'-cmb_id')  ## cmj2022Aug31
               sleep(self.__sleepTime)  ## give time for database to answer
               break
             except:

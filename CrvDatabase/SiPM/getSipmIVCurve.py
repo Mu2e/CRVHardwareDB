@@ -21,13 +21,23 @@
 ##  Modified by cmj2020Dec16... replace hdbClient_v2_2 with hdbClient_v3_3 - and (&) on query works
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
 ##  Modified by cmj2021May11.... replace dataloader with dataloader
+##  Modified by cmj2022Sep01... Was sampling development database... change default to production database.se
+##                              in class Multiwindow__init__ (line 100)
+##  Modified by cmj2022Sep01... Removed potential bug in ".query" calls to dataloader...
+##                              The fourth argument ("where") details the order that the returned
+##                              values are sorted under.... It was sorted by the whole fetch list...
+##                              Now the returned list is sorted by "-create_time", which is the create_time
+##                              getSipmsFromWafflePack (line 420)
+##                              getWafflePackFromSipms (line 458)
+##                              plotSipmIVcurve (line 512)
 ##
 #!/bin/env python
 from tkinter import *         # get widget class
 import tkinter as tk
 import tkinter.filedialog
 import os
-import sys        ## 
+import sys        ## ##  Modified by cmj2022Sep01... Was sampling development database... change default to production database.se
+##                              in class Multiwindow__init__ (line 100)
 import optparse   ## parser module... to parse the command line arguments
 import math
 from time import *
@@ -51,7 +61,7 @@ from ROOT import gROOT, gBenchmark, gRandom, gSystem, gStyle, Double_t
 from array import array
 ##
 ProgramName = "goodSipm.py"
-Version = "version2021.2.08"
+Version = "version2022.09.01"
 ##
 ##
 ##
@@ -64,7 +74,7 @@ class multiWindow(Frame):
   def __init__(self,parent=NONE, myRow = 0, myCol = 0):
     Frame.__init__(self,parent)
     self.__database_config  = databaseConfig()
-    self.setupDevelopmentDatabase()  ## set up communications with database
+    self.setupProductionDatabase()  ## set up communications with database ## cmj2022Sep01
     self.__cmjPlotDiag = 0 ## default... not debug messages printed out
                   ##  Limit number of sipms read in for tests.... set negative to read all
     self.__cmjTest = 0      ## set this to 1 to look at 10 sipm_id's
@@ -409,7 +419,7 @@ class multiWindow(Frame):
       print((".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table))
       print((".... getSipmsFromWafflePack: self.__fetchThese           = %s \n") % (self.__fetchThese))
       print((".... getSipmsFromWafflePack: self.__fetchCondition       = %s \n") % (self.__fetchCondition))
-    self.__localSipmBatchValues = self.__getSipmBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
+    self.__localSipmBatchValues = self.__getSipmBatchValues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time')  ## cmj2022Sep01
     if(self.__cmjPlotDiag > 2): 
       print((".... getSipmsFromWafflePack: self.__getSipmBatchValues   = %s \n") % (self.__getSipmBatchValues))
       print((".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table))
@@ -451,7 +461,7 @@ class multiWindow(Frame):
       print((".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table))
       print((".... getSipmsFromWafflePack: self.__fetchThese2          = %s \n") % (self.__fetchThese2))
       print((".... getSipmsFromWafflePack: self.__fetchCondition2      = %s \n") % (self.__fetchCondition2))
-    self.__localWaffelPackValues = self.__getWaffelPackValues.query(self.__database,self.__table,self.__fetchThese2,self.__fetchCondition2,'-'+self.__fetchThese2)
+    self.__localWaffelPackValues = self.__getWaffelPackValues.query(self.__database,self.__table,self.__fetchThese2,self.__fetchCondition2,'-create_time')  ## cmj2022Sep01
     if(self.__cmjPlotDiag > 2): 
       print((".... getSipmsFromWafflePack: self.__localWaffelPackValues   = %s \n") % (self.__localWaffelPackValues))
       print((".... getSipmsFromWafflePack: self.__table                = %s \n") % (self.__table))
@@ -500,7 +510,7 @@ class multiWindow(Frame):
       ##  This call returns a list with the database entries for all lines with the same sipm_id plus other
       ##   list members that are either white characters, quotations or forward slashes.. They must be
       ##   filtered out before sending them to the "unpackSipms" member function....
-      self.__localSipmIvsVresult = self.__getSipmIvsVvalues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-'+self.__fetchThese)
+      self.__localSipmIvsVresult = self.__getSipmIvsVvalues.query(self.__database,self.__table,self.__fetchThese,self.__fetchCondition,'-create_time') ## cmj2022Sep01
       self.__singleSipmIvsVline = []
       if(self.__cmjPlotDiag > -1): print((".... plotSipmIVcurvexx: len(self.__localSipmIvsVresult) = %d, self.__localSipmIvsVresult  = %s \n") % (len(self.__localSipmIvsVresult),self.__localSipmIvsVresult))
       self.__mcount = 0
