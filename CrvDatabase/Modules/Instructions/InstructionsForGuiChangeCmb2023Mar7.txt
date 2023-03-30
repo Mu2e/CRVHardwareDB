@@ -1,0 +1,28 @@
+These are instruction for running the guiChangeCmb script.
+Written by Merrill Jenkins
+	    University of South Alabama
+	    2023Mar07
+This is a GUI-base script to change the CMB
+(Counter Mother Board) for a di-counter in a module.
+These changes may occur by an individual CMB change
+or by using a csv file.
+
+I  ) Individaual exchange.  
+      A) Enter the existing CMB board number in the Current CMB 
+         box.  Then click "Enter" button.  The current di-counter, 
+         SIPM position and di-counter side  will appear in the 
+         window below.
+      B) Enter the new CMB borad number in the New CMB board box.
+         Click the "Enter" button.  The new CMB board number is 
+         entered.
+     
+--------------------------------------------------------------------
+
+The "Turn on Test" button allows this script to run without
+sending information to the database.
+
+The "Turn on Debug" button turns on the debug statements that
+are writen to stdin (i.e. the terminal window) that this
+script was started.
+
+The "Quit" button is self-explained!

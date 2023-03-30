@@ -30,6 +30,8 @@
 ##  Modified by cmj2021Mar1.... Convert from python2 to python3: 2to3 -w *.py
 ##  Modified by cmj2021Mar1.... replace dataloader with dataloader3
 ##  Modified by cmj2021May11... replace tabs with spaces for block statements to convert to python 3
+##  Modified by cmj2023Mar07.... Modified class myScrolledText to include appending the text in the
+##                               scrolled text box with method appendText
 ##
 #!/usr/bin/env python
 ##
@@ -49,7 +51,7 @@ sys.path.append("../Utilities/hdbClient_v3_3/DataLoader.zip")
 from myTime import *          # a wrapper to return the time and calander
 from DataLoader import DataLoader
 #
-Version = 'v_2019jan30'
+Version = 'v_2023Mar07'
 allDiag = 9      # set cmjDiag to this value to turn on all diagnostic prints
 cmjDiag = 0      # set non-zero  to print diagnostic prints
                # set to 1 to print the output file results
@@ -471,7 +473,7 @@ class myScrolledText(Frame):
       self.__text.grid(row=0,column=0,sticky=E)      ## display the text
     def setText(self,tempText='default',tempFile=None,tempLine=1.0):
       self.__textString = 'secondDefault'
-      self.__textLine = tempLine  ## to append a the end of the file: END
+      #cmj2023Mar07self.__textLine = tempLine  ## to append a the end of the file: END
           ## to write at the beginning: '1.0'
       # print 'tempfile = %s \n' % tempFile
       if tempFile != None:
@@ -479,11 +481,26 @@ class myScrolledText(Frame):
       else:
         self.__textString = tempText
 #      self.__text.insert(1.0,self.__textString)      ## insert string into text file
-      self.__text.insert(self.__textLine,self.__textString)      ## insert string into text file
+      self.__text.insert(INSERT,self.__textString)      ## insert string into text file
       self.__text.config(height=self.__height)
       self.__text.config(width=self.__width)
       self.__text.config(bg=self.__bgColor,fg=self.__fgColor)
       self.__text.config(font=self.__myFont)
+    def appendText(self,tempText='default',tempFile=None):
+      self.__textString = 'secondDefault'
+      #cmj2023Mar07self.__textLine = tempLine  ## to append a the end of the file: END
+          ## to write at the beginning: '1.0'
+      # print 'tempfile = %s \n' % tempFile
+      if tempFile != None:
+        self.__textString = open(tempFile,'r').read()    ## read a file into the text
+      else:
+        self.__textString = tempText
+#      self.__text.insert(1.0,self.__textString)      ## insert string into text file
+      self.__text.insert(END,self.__textString)      ## insert string into text file
+      self.__text.config(height=self.__height)
+      self.__text.config(width=self.__width)
+      self.__text.config(bg=self.__bgColor,fg=self.__fgColor)
+      self.__text.config(font=self.__myFont)  
     def setTextBoxHeight(self,tempHeight):
       self.__height = tempHeight
     def setTextBoxWidth(self,tempWidth):
