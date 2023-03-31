@@ -664,7 +664,7 @@ class multiWindow(Frame):
 if __name__ == '__main__':
   parser = optparse.OptionParser("usage: %prog [options] file1.txt \n")
   parser.add_option('--debug',dest='debugLevel',type='int',default=0,help='set debug: 0 (off - default), 1, 2, 3, ... ,10')
-  parser.add_option('--database',dest='database',type='string',default="development",help='development or production')
+  parser.add_option('--database',dest='database',type='string',default="production",help='development or production')
   ##
   options, args = parser.parse_args()
   print(("'__main__': options.database  = %s \n") % (options.database))
