@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##
-## File = "CountNumberOfDiCounters.py"
+## File = "CountNumberOfModules.py"
 ## Derived from File = "ExtrusionCounter.py"
+## Modified from File = "ExtrusionCounter.py"
 ##
 ##  python script to count the number of entries in the 
 ##  extrusion tables
@@ -42,16 +43,16 @@ import math
 import time
 ##
 ##
-ProgramName = "CountNumberOfDiCounters"
+ProgramName = "CountNumberOfModules"
 Version = "version2023.06.12"  ## 2020Jul09
 
 
 ##############################################################################################
 ##############################################################################################
-###  Class to count the number of DiCounters in the database
-class countDiCounters(object):
+###  Class for Modules query
+class countModules(object):
   def __init__(self):
-    print('inside class countDiCounters, init \n')
+    print('inside class countModules, init \n')
     self.__cmjDebug = 0        ## no debug statements
     self.__maxColumns = 7      ## maximum columns in the spread sheet
     self.__sendToDatabase = 0  ## Do not send to database
@@ -62,15 +63,15 @@ class countDiCounters(object):
 ## -----------------------------------------------------------------
   def turnOnDebug(self,tempDebugLevel):
     self.__cmjDebug = tempDebugLevel  # turn on debug
-    print(("__countDicounters__turnOnDebug... turn on debug: level = %s \n") % (self.__cmjDebug))
+    print(("__countModules__::turnOnDebug... turn on debug: level = %s \n") % (self.__cmjDebug))
 ## -----------------------------------------------------------------
   def turnOffDebug(self):
     self.__cmjDebug = 0  # turn on debug
-    print("__countDicounters__turnOffDebug... turn off debug \n")
+    print("__countModules__::turnOffDebug... turn off debug \n")
 ## -----------------------------------------------------------------
   def setDebugLevel(self,tempValue):
     self.__cmjDebug = int(tempValue)  # turn on debug
-    print(("__countDicounters__setDebugLevel... set debug level = %d\n") % self.__cmjDebug)
+    print(("__countModules__::setDebugLevel... set debug level = %d\n") % self.__cmjDebug)
 ## -----------------------------------------------------------------
 ##
 ##      Make querries to data base
@@ -78,27 +79,27 @@ class countDiCounters(object):
     self.__database = 'mu2e_hardware_dev'
     self.__group = "di_counters Tables"
     self.__whichDatabase = 'development'
-    print("__countDiCounters_::getFromDevelopmentDatabase... get from development database \n")
+    print(".__countMoudules__::getFromDevelopmentDatabase... get from development database \n")
     self.__queryUrl = self.__database_config.getQueryUrl()
-    #print("___countDiCounters__::setupDevelopmentDatabase... self.__url =  %s") % self.__queryUrl
+    #print("....__countModules__::setupDevelopmentDatabase... self.__url =  %s") % self.__queryUrl
 ##
 ## -------------------------------------------------------------------
 ##      Make querries to data base
   def setupProductionDatabase(self):
     self.__database = 'mu2e_hardware_prd'
     self.__whichDatabase = 'production'
-    print("__countDiCounters__::setupProductionDatabase... get from production database \n")
+    print("__countModules__::setupProductionDatabase... get from production database \n")
     self.__queryUrl = self.__database_config.getProductionQueryUrl()
-    #print(".__countDiCounters__::setupProductionDatabase... self.__url =  %s") % self.__queryUrl
+    #print("....__countModules__::setupProductionDatabase... self.__url =  %s") % self.__queryUrl
 ## ---------------------------------------------------------------------------
-  def countTheDicounters(self):
+  def countTheModules(self):
     self.__getDatabaseValue = DataQuery(self.__queryUrl)
     self.__tables = "mu2e_table_cnts"   ## cmj 2022Jan28
-    self.__rows = self.__getDatabaseValue.query(self.__database,self.__tables,"di_counters_cnt") ## cmj 2022Jan28
+    self.__rows = self.__getDatabaseValue.query(self.__database,self.__tables,"modules_cnt") ## cmj 2022Jan28
     print("\nQuery Results:")
     for self.__row in self.__rows:
       print((self.__row))
-    print(("__countDicounters__:countTheDicounters:: number of rows = %s ") % self.__rows[0])
+    print(("__countModules__:countTheModules:: number of rows = %s ") % self.__rows[0])
 
 
 ##############################################################################################
@@ -109,20 +110,20 @@ if __name__ == '__main__':
 #      Build general help string....
   modeString = []
   modeString.append("This script is run in one mode:")
-  modeString.append("> python CountNumberOfDiCounters.py --database ''production''")
+  modeString.append("> python CountNumberOfModules.py --database ''production''")
   modeString.append("The user may use a relative or absolute path to the spreadsheet")
   parser.add_option('-d',dest='debugMode',type='int',default=0,help='set debug: 0 (off - default), 1 = on')
   parser.add_option('-t',dest='testMode',type='int',default=0,help='set to test mode (do not send to database): 1')
   parser.add_option('--database',dest='database',type='string',default="production",help='development or production')
   options, args = parser.parse_args()
 ##
-  myDiCounters = countDiCounters()
+  myModules = countModules()
   print(("\nRunning %s \n") % (ProgramName))
   print(("%s \n") % (Version))
   if(options.database == 'development'):
-      myDiCounters.setupDevelopmentDatabase()  ## turns on send to development database
+      myModules.setupDevelopmentDatabase()  ## turns on send to development database
   elif(options.database == 'production'):
-      myDiCounters.setupProductionDatabase()  ## turns on send to production database
-  myDiCounters.countTheDicounters()
+      myModules.setupProductionDatabase()  ## turns on send to production database
+  myModules.countTheModules()
 #
   print(("Finished running %s \n") % (ProgramName))

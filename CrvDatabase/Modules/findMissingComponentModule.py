@@ -27,6 +27,7 @@
 ##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 2nd change 4th argument in .query to sort by di_counter_id (line 684)
 ##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 3rd change 4th argument in .query to sort cmb_id (line 721)
 ##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 4th change 4th argument in .query to sort cmb_id (line 764) 
+##  Modified by cmj2023Jun12... Write out to text file the component id's for modules....
 ##
 #!/bin/env python
 from tkinter import *         # get widget classM
@@ -48,7 +49,7 @@ from ModulesNonStaggered import *
 #import SipmMeasurements
 ##
 ProgramName = "findMissingComponentModule.py"
-Version = "version2023.05.16"
+Version = "version2023.06.12"
 ##
 ##
 ##
@@ -121,6 +122,9 @@ class multiWindow(Frame):
                                                 ## the keys are [layer][[position][sipmPosition]]      
                                                 ## position 0, 1, 2, 3, 4, 5, 6, 7
     self.__sipmSignoffStatus_color='black'
+##
+    self.__outputFileTextName = "moduleComponentId.txt"  ## cmj2023Jun12
+    self.openOutputTextFile()  ## cmj2023Jun12
 ##
 ##      Display the Control Box  Frame here..
     self.__frame0 = tk.Frame(self.__masterFrame,bg=self.__defaultBackGroundColor)
@@ -707,6 +711,14 @@ class multiWindow(Frame):
       print((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
       print((".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1))
       print((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
+    ##
+    ##  Write to text file:
+    print (".... getDiCountersInModule: ================================================ \n") 
+    self.__outFile.write((".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1))
+    self.__outFile.write((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
+    self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1))
+    self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
+    ##  Write to text file:
     xx = self.__progressBarCount.get()  ## get the current count for the progress bar
     self.__progressBarCount.set(xx+10)  ## increment the count
     self.update() ## update the progress bar
@@ -748,6 +760,14 @@ class multiWindow(Frame):
         print((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
         print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
         print((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
+      ##  Write to text file:
+      self.__outFile.write(".... getDiCountersInModule: --------------------------------------------------- \n")
+      self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2))
+      self.__outFile.write((".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2))
+      self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
+      self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+      self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
+      ##  Write to text file:
       for self.__nnn in sorted(self.__localDataBaseLine2_list):
         self.__tempElement2 = []
         if(self.__nnn == '') : continue
@@ -798,6 +818,17 @@ class multiWindow(Frame):
               print((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
               print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
               print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            ##  Write to text file:
+            self.__outFile.write(".... getDiCountersInModule: ............................................  \n")
+            self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+            self.__outFile.write((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+            self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+            self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+            self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+            self.__outFile.write((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
+            self.__outFile.write((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+            self.__outFile((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            ##  Write to text file:
             self.__moduleSipmId_top_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
         elif(self.__tempDiCounterEnd == 'bottom'):
           self.__moduleCmb_bot_dict[self.__tempLayer][self.__tempPosition] = self.__tempCmbId
@@ -842,11 +873,29 @@ class multiWindow(Frame):
               print((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
               print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
               print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            ##  Write to text file:
+            self.__outFile.write(".... getDiCountersInModule: ............................................  \n")
+            self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+            self.__outFile.write((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+            self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+            self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+            self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+            self.__outFile.write((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
+            self.__outFile.write((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+            self.__outFile.write((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            ##  Write to text file:
             self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
             if (self.__cmjDebug > 3) : print((".... getDiCountersInModule:  self.__moduleSipmId_bot_nest_dict[%s][%s][%s] = %s") % (self.__tempLayer,self.__tempPosition,self.__tempSipmPosition,self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition]))
     if(self.__cmjDebug > 2) : print((".... getDiCountersInModule:  self.__ModuleSideselection = %s \n") % (self.__ModuleSideselection))
     self.setStatusGrid2(self.__ModuleSideselection)  ## Diplay the grid 
     return self.__localDiCounterValues_list
+## -------------------------------------------------------------------
+##  Define output text file
+  def openOutputTextFile(self):
+    print(("...openOutputTextFile... self.__outputFileTextName = %s \n")%(self.__outputFileTextName))
+    self.__outFile=open(self.__outputFileTextName,'w')
+    return
+     
 ##
 ##
 ## ===================================================================
