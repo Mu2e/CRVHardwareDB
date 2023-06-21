@@ -28,9 +28,10 @@
 ##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 3rd change 4th argument in .query to sort cmb_id (line 721)
 ##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 4th change 4th argument in .query to sort cmb_id (line 764) 
 ##  Modified by cmj2023Jun12... Write out to text file the component id's for modules....
-##  Modified by cmj2023Jun22... Write out only desired information and not the entire list...
+##  Modified by cmj2023Jun21... Write out only desired information and not the entire list...
 ##                              Do not write out Module component information in "getDiCountersInModule"
 ##                              Instead add new function: "writeSummaryFile" and call this function at the end of setStatusGrid2
+##  Modified by cmj2023Jun21... Fix case where there is not smb, cmb in "writeSummaryFile"...
 ##
 #!/bin/env python
 from tkinter import *         # get widget classM
@@ -542,39 +543,54 @@ class multiWindow(Frame):
     self.__canvas1.configure(scrollregion=self.__bbox,width=self.__deltaWidth,height=self.__deltaHeight) ## actually configur the canvas
     self.writeSummaryFile()  ## cmj2023Jun21
     return
- ## ------------------------------------------------------------------
- ## cmj2023Jun21
- ##  Write a summary of the components in a CRV module to a txt file.
- ##
+## ------------------------------------------------------------------
+## cmj2023Jun21
+##  Write a summary of the components in a CRV module to a txt file.
+##
   def writeSummaryFile(self):
-    ##cmj2023Jun23... open file
+    ##cmj2023Jun21... open file
     tempFileName = "aaa_moduleComponent"  ## cmj2023Jun12
     tempFileName += "-"+self.__StringEntry_result+"_"+self.__ModuleSideselection+".txt"
-    #self.openOutputTextFile(tempFileName)
     print(("...writeSummaryFile... Output File Name = %s \n")%(tempFileName))
     self.__outFile=open(tempFileName,'w')
-    ##cmj2023Jun23... open file
     self.__outFile.write("__setStatusGrid__writeSummaryFile \n")
     self.__outFile.write(("=========== Sorted Components =============== \n"))
-    print(("---------- self.__layer_list = %s \n") % (self.__layer_list))
     if(self.__localSide == 'top'):
       self.__outFile.write((" Module = %s Top \n")%(self.__StringEntry_result))
       for mm in self.__layer_list:
         for nn in self.__position_list_top:
-          self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_top_dict[mm][nn],self.__moduleCmb_top_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
-          print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_top_dict[mm][nn],self.__moduleCmb_top_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
+          smb1 = "N/A"
+          try:
+            smb1 = self.__moduleSmb_top_dict[mm][nn]
+          except KeyError:
+            pass
+          cmb1 = "N/A"
+          try:
+           cmb1 = self.__moduleCmb_top_dict[mm][nn]
+          except KeyError:
+           pass
+          self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,smb1,cmb1,self.__moduleDiCounterId_dict[mm][nn]))
+          print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,smb1,cmb1,self.__moduleDiCounterId_dict[mm][nn]))
           for ii in self.__sipm_position_list_top:
             self.__outFile.write((" position = %s sipm = %s \n")%(ii,self.__moduleSipmId_top_nest_dict[mm][nn][ii]))
     if(self.__localSide == 'bottom'):
       self.__outFile.write((" Module = %s Bottom \n")%(self.__StringEntry_result))
       for mm in self.__layer_list:
         for nn in self.__position_list_bot:
-          self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_bot_dict[mm][nn],self.__moduleCmb_bot_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
+          smb1 = "N/A"
+          try:
+            smb1 = self.__moduleSmb_bot_dict[mm][nn]
+          except KeyError:
+            pass
+          cmb1 = "N/A"
+          try:
+           cmb1 = self.__moduleCmb_bot_dict[mm][nn]
+          except KeyError:
+           pass
+          self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,smb1,cmb1,self.__moduleDiCounterId_dict[mm][nn]))
           print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_bot_dict[mm][nn],self.__moduleCmb_bot_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
           for ii in self.__sipm_position_list_bot:
-            tempOut = self.__moduleSipmId_bot_nest_dict[mm][nn][ii]
-            if(tempOut == ''): tempOut = "N/A"
-            self.__outFile.write((" position = %s sipm = %s \n")%(ii,tempOut))
+            self.__outFile.write((" position = %s sipm = %s \n")%(ii,self.__moduleSipmId_bot_nest_dict[mm][nn][ii]))
     self.__outFile.close()
     return
 ##
