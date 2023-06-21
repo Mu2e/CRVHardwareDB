@@ -28,6 +28,9 @@
 ##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 3rd change 4th argument in .query to sort cmb_id (line 721)
 ##  Modified by cmj2022Aug31... Inside getDiCountersInModule... 4th change 4th argument in .query to sort cmb_id (line 764) 
 ##  Modified by cmj2023Jun12... Write out to text file the component id's for modules....
+##  Modified by cmj2023Jun22... Write out only desired information and not the entire list...
+##                              Do not write out Module component information in "getDiCountersInModule"
+##                              Instead add new function: "writeSummaryFile" and call this function at the end of setStatusGrid2
 ##
 #!/bin/env python
 from tkinter import *         # get widget classM
@@ -49,7 +52,7 @@ from ModulesNonStaggered import *
 #import SipmMeasurements
 ##
 ProgramName = "findMissingComponentModule.py"
-Version = "version2023.06.12"
+Version = "version2023.06.21"
 ##
 ##
 ##
@@ -123,8 +126,8 @@ class multiWindow(Frame):
                                                 ## position 0, 1, 2, 3, 4, 5, 6, 7
     self.__sipmSignoffStatus_color='black'
 ##
-    self.__outputFileTextName = "moduleComponentId.txt"  ## cmj2023Jun12
-    self.openOutputTextFile()  ## cmj2023Jun12
+    ##cmj2023Jun21 self.__outputFileTextName = "moduleComponentId.txt"  ## cmj2023Jun12
+    ##cmj2023Jun21 self.openOutputTextFile()  ## cmj2023Jun12
 ##
 ##      Display the Control Box  Frame here..
     self.__frame0 = tk.Frame(self.__masterFrame,bg=self.__defaultBackGroundColor)
@@ -537,6 +540,43 @@ class multiWindow(Frame):
     self.__deltaWidth=int((self.__width/self.__COLS)*self.__COLS_DISP)   ## define the scrollable region as canvas with COLS_DISP columns displayed
     self.__deltaHeight=int((self.__height/self.__ROWS)*self.__ROWS_DISP) ## define the scrollable region as canvas with ROWS_DISP rows displayed
     self.__canvas1.configure(scrollregion=self.__bbox,width=self.__deltaWidth,height=self.__deltaHeight) ## actually configur the canvas
+    self.writeSummaryFile()  ## cmj2023Jun21
+    return
+ ## ------------------------------------------------------------------
+ ## cmj2023Jun21
+ ##  Write a summary of the components in a CRV module to a txt file.
+ ##
+  def writeSummaryFile(self):
+    ##cmj2023Jun23... open file
+    tempFileName = "aaa_moduleComponent"  ## cmj2023Jun12
+    tempFileName += "-"+self.__StringEntry_result+"_"+self.__ModuleSideselection+".txt"
+    #self.openOutputTextFile(tempFileName)
+    print(("...writeSummaryFile... Output File Name = %s \n")%(tempFileName))
+    self.__outFile=open(tempFileName,'w')
+    ##cmj2023Jun23... open file
+    self.__outFile.write("__setStatusGrid__writeSummaryFile \n")
+    self.__outFile.write(("=========== Sorted Components =============== \n"))
+    print(("---------- self.__layer_list = %s \n") % (self.__layer_list))
+    if(self.__localSide == 'top'):
+      self.__outFile.write((" Module = %s Top \n")%(self.__StringEntry_result))
+      for mm in self.__layer_list:
+        for nn in self.__position_list_top:
+          self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_top_dict[mm][nn],self.__moduleCmb_top_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
+          print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_top_dict[mm][nn],self.__moduleCmb_top_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
+          for ii in self.__sipm_position_list_top:
+            self.__outFile.write((" position = %s sipm = %s \n")%(ii,self.__moduleSipmId_top_nest_dict[mm][nn][ii]))
+    if(self.__localSide == 'bottom'):
+      self.__outFile.write((" Module = %s Bottom \n")%(self.__StringEntry_result))
+      for mm in self.__layer_list:
+        for nn in self.__position_list_bot:
+          self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_bot_dict[mm][nn],self.__moduleCmb_bot_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
+          print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_bot_dict[mm][nn],self.__moduleCmb_bot_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
+          for ii in self.__sipm_position_list_bot:
+            tempOut = self.__moduleSipmId_bot_nest_dict[mm][nn][ii]
+            if(tempOut == ''): tempOut = "N/A"
+            self.__outFile.write((" position = %s sipm = %s \n")%(ii,tempOut))
+    self.__outFile.close()
+    return
 ##
 ## ------------------------------------------------------------------
 ##
@@ -713,11 +753,11 @@ class multiWindow(Frame):
       print((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
     ##
     ##  Write to text file:
-    print (".... getDiCountersInModule: ================================================ \n") 
-    self.__outFile.write((".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1))
-    self.__outFile.write((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
-    self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1))
-    self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
+    ##cmj2023Jun21 print (".... getDiCountersInModule: ================================================ \n") 
+    ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__table1                = %s \n") % (self.__table1))
+    ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchThese1           = %s \n") % (self.__fetchThese1))
+    ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition1       = %s \n") % (self.__fetchCondition1))
+    ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine1_list = %s \n") % (self.__localDataBaseLine1_list))
     ##  Write to text file:
     xx = self.__progressBarCount.get()  ## get the current count for the progress bar
     self.__progressBarCount.set(xx+10)  ## increment the count
@@ -761,12 +801,12 @@ class multiWindow(Frame):
         print((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
         print((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
       ##  Write to text file:
-      self.__outFile.write(".... getDiCountersInModule: --------------------------------------------------- \n")
-      self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2))
-      self.__outFile.write((".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2))
-      self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
-      self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
-      self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
+      ##cmj2023Jun21 self.__outFile.write(".... getDiCountersInModule: --------------------------------------------------- \n")
+      ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table2))
+      ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchThese2           = %s \n") % (self.__fetchThese2))
+      ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition2       = %s \n") % (self.__fetchCondition2))
+      ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+      ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine2_list = %s \n") % (self.__localDataBaseLine2_list))
       ##  Write to text file:
       for self.__nnn in sorted(self.__localDataBaseLine2_list):
         self.__tempElement2 = []
@@ -819,15 +859,15 @@ class multiWindow(Frame):
               print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
               print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
             ##  Write to text file:
-            self.__outFile.write(".... getDiCountersInModule: ............................................  \n")
-            self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
-            self.__outFile.write((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
-            self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
-            self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
-            self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
-            self.__outFile.write((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
-            self.__outFile.write((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
-            self.__outFile((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            ##cmj2023Jun21 self.__outFile.write(".... getDiCountersInModule: ............................................  \n")
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+            ##cmj2023Jun21 self.__outFile((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
             ##  Write to text file:
             self.__moduleSipmId_top_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
         elif(self.__tempDiCounterEnd == 'bottom'):
@@ -874,15 +914,15 @@ class multiWindow(Frame):
               print((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
               print((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
             ##  Write to text file:
-            self.__outFile.write(".... getDiCountersInModule: ............................................  \n")
-            self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
-            self.__outFile.write((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
-            self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
-            self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
-            self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
-            self.__outFile.write((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
-            self.__outFile.write((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
-            self.__outFile.write((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
+            ##cmj2023Jun21 self.__outFile.write(".... getDiCountersInModule: ............................................  \n")
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__table                = %s \n") % (self.__table3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchThese3           = %s \n") % (self.__fetchThese3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__fetchCondition3       = %s \n") % (self.__fetchCondition3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__localDataBaseLine3_list = %s \n") % (self.__localDataBaseLine3_list))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempLayer = %s self.__tempPosition = %s \n") % (self.__tempLayer,self.__tempPosition))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempElement3                = %s \n") % (self.__tempElement3))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempCmbId = %s \n") % (self.__tempCmbId))
+            ##cmj2023Jun21 self.__outFile.write((".... getDiCountersInModule: self.__tempSmbId = %s \n") % (self.__tempSmbId))
             ##  Write to text file:
             self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition] = self.__tempSipmId[20:len(self.__tempSipmId)]
             if (self.__cmjDebug > 3) : print((".... getDiCountersInModule:  self.__moduleSipmId_bot_nest_dict[%s][%s][%s] = %s") % (self.__tempLayer,self.__tempPosition,self.__tempSipmPosition,self.__moduleSipmId_bot_nest_dict[self.__tempLayer][self.__tempPosition][self.__tempSipmPosition]))
@@ -891,10 +931,9 @@ class multiWindow(Frame):
     return self.__localDiCounterValues_list
 ## -------------------------------------------------------------------
 ##  Define output text file
-  def openOutputTextFile(self):
-    print(("...openOutputTextFile... self.__outputFileTextName = %s \n")%(self.__outputFileTextName))
-    self.__outFile=open(self.__outputFileTextName,'w')
-    return
+##cmj2023Jun21   def openOutputTextFile(self):
+##cmj2023Jun21     print(("...openOutputTextFile... self.__outputFileTextName = %s \n")%(self.__outputFileTextName))
+##cmj2023Jun21     return
      
 ##
 ##
