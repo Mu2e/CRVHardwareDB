@@ -32,6 +32,9 @@
 ##                              Do not write out Module component information in "getDiCountersInModule"
 ##                              Instead add new function: "writeSummaryFile" and call this function at the end of setStatusGrid2
 ##  Modified by cmj2023Jun21... Fix case where there is not smb, cmb in "writeSummaryFile"...
+##  Modified by cmj2023Jun23... Modified: writeSummaryFile (lines 547-600):
+##                              Test sipm output string length.. if it is 1, then the string is empty... make N/A
+##                              Correct the output statetment for the bottom
 ##
 #!/bin/env python
 from tkinter import *         # get widget classM
@@ -572,7 +575,10 @@ class multiWindow(Frame):
           self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,smb1,cmb1,self.__moduleDiCounterId_dict[mm][nn]))
           print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,smb1,cmb1,self.__moduleDiCounterId_dict[mm][nn]))
           for ii in self.__sipm_position_list_top:
-            self.__outFile.write((" position = %s sipm = %s \n")%(ii,self.__moduleSipmId_top_nest_dict[mm][nn][ii]))
+            sipm1 = self.__moduleSipmId_top_nest_dict[mm][nn][ii]
+            if(len(sipm1) == 1): sipm1 = "N/A"
+            self.__outFile.write((" position = %s sipm = %s \n")%(ii,sipm1))
+            print((" position = %s sipm = %s \n")%(ii,sipm1))
     if(self.__localSide == 'bottom'):
       self.__outFile.write((" Module = %s Bottom \n")%(self.__StringEntry_result))
       for mm in self.__layer_list:
@@ -588,9 +594,12 @@ class multiWindow(Frame):
           except KeyError:
            pass
           self.__outFile.write((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,smb1,cmb1,self.__moduleDiCounterId_dict[mm][nn]))
-          print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,self.__moduleSmb_bot_dict[mm][nn],self.__moduleCmb_bot_dict[mm][nn],self.__moduleDiCounterId_dict[mm][nn]))
+          print((" layer = %s | position = %s | smb = %s | cmb = %s | diCounter = %s \n")%(mm,nn,smb1,cmb1,self.__moduleDiCounterId_dict[mm][nn]))
           for ii in self.__sipm_position_list_bot:
-            self.__outFile.write((" position = %s sipm = %s \n")%(ii,self.__moduleSipmId_bot_nest_dict[mm][nn][ii]))
+            sipm1 = self.__moduleSipmId_bot_nest_dict[mm][nn][ii]
+            if(len(sipm1) == 1): sipm1 = "N/A"
+            self.__outFile.write((" position = %s sipm = %s \n")%(ii,sipm1))
+            print((" position = %s sipm = %s \n")%(ii,sipm1))
     self.__outFile.close()
     return
 ##
